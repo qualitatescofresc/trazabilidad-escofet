@@ -227,8 +227,11 @@
 </div>
 
 <script>
-// PENDIENTE DE TU PARTE: Pon aquí tu URL de la aplicación de Google Apps Script
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyuHVCLFAutjMo2qdiQzDKuewempmC1rW-Hsoyo6DRGaRhCP2MdZZQIpHwmTFBQqyu-sQ/exec"; 
+// URL de tu Apps Script (Únicamente para GUARDAR trazabilidad, función POST)
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwqVvX6K753w-w76b8U4uK0_X-y3gYpG1N9D/exec"; // <-- REEMPLAZA CON TU WEB APP URL REAL
+
+// URL de exportación directa a CSV de tu documento de SAGE (ID: 1svOd-IdYqybrTdijHOqvG5dOdJEOk-QHtRZTHcdTvZ4)
+const SAGE_CSV_URL = "https://docs.google.com/spreadsheets/d/1svOd-IdYqybrTdijHOqvG5dOdJEOk-QHtRZTHcdTvZ4/gviz/tq?tqx=out:csv&sheet=Hoja%201";
 
 let lotesTemporalesSAGE = {};
 let currentInput = null;
@@ -424,8 +427,7 @@ const baseDatosIngredientes = {
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"},
         {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,725", uni: "kg"},
         {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,948", uni: "kg"}
-    ],
-
+    ]
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -436,22 +438,79 @@ document.addEventListener("DOMContentLoaded", () => {
     const numpad = document.getElementById("numeric-pad");
     const alphapad = document.getElementById("alphanumeric-keyboard");
 
-    if(WEB_APP_URL) {
-        fetch(WEB_APP_URL)
-        .then(response => response.json())
-        .then(res => {
-            if(res.status === "success") {
-                lotesTemporalesSAGE = res.lotes;
-                const badge = document.getElementById("status-lotes");
-                badge.innerText = "Lots SAGE Online";
-                badge.classList.replace("bg-warning", "bg-success");
+    // DESCARGAR DIRECTAMENTE DESDE GOOGLE SAGE (CSV)
+    fetch(SAGE_CSV_URL)
+    .then(response => response.text())
+    .then(csvText => {
+        procesarCSVLotes(csvText);
+        const badge = document.getElementById("status-lotes");
+        badge.innerText = "Lots SAGE Online";
+        badge.classList.replace("bg-warning", "bg-success");
+    })
+    .catch(err => {
+        console.error("Error cargando SAGE direct CSV:", err);
+        const badge = document.getElementById("status-lotes");
+        badge.innerText = "Error Lots (Offline)";
+        badge.classList.replace("bg-warning", "bg-danger");
+    });
+
+    // Función auxiliar para parsear filas de un archivo CSV con soporte para comillas
+    function parsearLineaCSV(linea) {
+        let resultado = [];
+        let dentroDeComillas = false;
+        let entradaActual = "";
+        
+        for (let i = 0; i < linea.length; i++) {
+            let char = linea[i];
+            if (char === '"') {
+                dentroDeComillas = !dentroDeComillas;
+            } else if (char === ',' && !dentroDeComillas) {
+                resultado.push(entradaActual.trim().replace(/^"|"$/g, ''));
+                entradaActual = "";
+            } else {
+                entradaActual += char;
             }
-        })
-        .catch(err => {
-            const badge = document.getElementById("status-lotes");
-            badge.innerText = "Error Lots (Offline)";
-            badge.classList.replace("bg-warning", "bg-danger");
-        });
+        }
+        resultado.push(entradaActual.trim().replace(/^"|"$/g, ''));
+        return resultado;
+    }
+
+    function procesarCSVLotes(csvText) {
+        const lineas = csvText.split(/\r?\n/);
+        if (lineas.length < 2) return;
+
+        // Fila 1: Encabezados
+        const headers = parsearLineaCSV(lineas[0]);
+        const colCodigo = headers.indexOf("Codigo Articulo");
+        const colLote = headers.indexOf("IdLote");
+
+        if (colCodigo === -1 || colLote === -1) {
+            console.error("No se encontraron las columnas clave de SAGE.");
+            return;
+        }
+
+        lotesTemporalesSAGE = {};
+
+        // Recorremos las filas desde el final (más nuevas) hacia el principio
+        for (let i = lineas.length - 1; i >= 1; i--) {
+            if (!lineas[i].trim()) continue;
+            const columnas = parsearLineaCSV(lineas[i]);
+            
+            if (columnas.length > Math.max(colCodigo, colLote)) {
+                const codigo = columnas[colCodigo].trim();
+                const lote = columnas[colLote].trim();
+
+                if (codigo && lote) {
+                    if (!lotesTemporalesSAGE[codigo]) {
+                        lotesTemporalesSAGE[codigo] = [];
+                    }
+                    // Evitar duplicados del mismo lote y almacenar un máximo de 3 lotes más nuevos
+                    if (!lotesTemporalesSAGE[codigo].includes(lote) && lotesTemporalesSAGE[codigo].length < 3) {
+                        lotesTemporalesSAGE[codigo].push(lote);
+                    }
+                }
+            }
+        }
     }
 
     selectReceta.addEventListener("change", (e) => {
@@ -468,18 +527,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         baseDatosIngredientes[recetaId].forEach((item, index) => {
-            // Obtener el array de lotes de la base de datos descargada (máximo 3 de Sheets)
+            // Obtenemos los lotes. Si no hay ninguno, colocamos ["SENSE LOTE"]
             const listaLotes = lotesTemporalesSAGE[item.cod] || ["SENSE LOTE"];
             
-            // Generar las opciones del menú de lotes
-            let opcionesLoteHTML = "";
+            // Generamos dinámicamente las opciones del select de lotes
+            let opcionesLotesHTML = "";
             listaLotes.forEach((lote, idx) => {
                 const seleccionado = idx === 0 ? "selected" : "";
-                opcionesLoteHTML += `<option value="${lote}" ${seleccionado}>${lote}</option>`;
+                opcionesLotesHTML += `<option value="${lote}" ${seleccionado}>${lote}</option>`;
             });
-            
-            // Agregar opción manual
-            opcionesLoteHTML += `<option value="__MANUAL__">✍️ Introduïr manual...</option>`;
+            opcionesLotesHTML += `<option value="__MANUAL__">✍️ Introduïr manual...</option>`; //
 
             const fila = document.createElement("tr");
             fila.innerHTML = `
@@ -487,7 +544,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td class="item-nombre">${item.nom}</td>
                 <td class="celda-lote-dinamica">
                     <select class="form-select form-select-lg text-primary fw-bold select-lote-personalizado" onchange="gestionarCambioLote(this)">
-                        ${opcionesLoteHTML}
+                        ${opcionesLotesHTML}
                     </select>
                 </td>
                 <td class="cantidad-base-valor" data-base="${item.base.replace(',', '.')}">${item.base}</td>
