@@ -233,14 +233,7 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyuHVCLFAutjMo2qdiQ
 // URL de exportación directa a CSV de tu documento de SAGE (ID: 1svOd-IdYqybrTdijHOqvG5dOdJEOk-QHtRZTHcdTvZ4)
 const SAGE_CSV_URL = "https://docs.google.com/spreadsheets/d/1svOd-IdYqybrTdijHOqvG5dOdJEOk-QHtRZTHcdTvZ4/gviz/tq?tqx=out:csv&sheet=Hoja%201";
 
-// Función para generar el lote interno silencioso en formato DDMMAAEO
-function generarLoteInternoSilencioso() {
-    const hoy = new Date();
-    const dia = String(hoy.getDate()).padStart(2, '0');
-    const mes = String(hoy.getMonth() + 1).padStart(2, '0'); // Los meses van de 0 a 11
-    const anio = String(hoy.getFullYear()).slice(-2); // Últimos 2 dígitos del año
-    return `${dia}${mes}${anio}EO`;
-}
+
     
 let lotesTemporalesSAGE = {};
 let currentInput = null;
