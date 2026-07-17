@@ -19,6 +19,13 @@
             font-weight: bold !important;
         }
 
+        /* Checkbox de Ajuste Proporcional ampliado para fácil toque en tablet */
+        .scale-checkbox {
+            transform: scale(1.6);
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+
         /* --- CONTENEDORES GENERALES DE TECLADOS --- */
         .numpad-container, .keyboard-container {
             position: fixed;
@@ -131,6 +138,7 @@
                                     <th style="width: 220px;">Lote SAGE</th>
                                     <th>Quantitat Base</th>
                                     <th>Unitat</th>
+                                    <th class="text-center" style="width: 90px;">Escalat<br>Automàtic</th>
                                     <th style="width: 220px;">Ús Real (Limitant)</th>
                                 </tr>
                             </thead>
@@ -141,6 +149,7 @@
                                     <td colspan="3">TOTAL FORMULACIÓ BATCH</td>
                                     <td id="total-base-campo">-</td>
                                     <td>kg</td>
+                                    <td></td> <!-- Espacio extra por la nueva columna -->
                                     <td id="total-real-campo">-</td>
                                 </tr>
                             </tfoot>
@@ -233,11 +242,9 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyuHVCLFAutjMo2qdiQ
 // URL de exportación directa a CSV de tu documento de SAGE (ID: 1svOd-IdYqybrTdijHOqvG5dOdJEOk-QHtRZTHcdTvZ4)
 const SAGE_CSV_URL = "https://docs.google.com/spreadsheets/d/1svOd-IdYqybrTdijHOqvG5dOdJEOk-QHtRZTHcdTvZ4/gviz/tq?tqx=out:csv&sheet=Hoja%201";
 
-
-    
 let lotesTemporalesSAGE = {};
 let currentInput = null;
-let currentLoteInput = null; // Guarda el elemento input manual activo
+let currentLoteInput = null; 
 
 const baseDatosIngredientes = {
     "30": [
@@ -287,17 +294,20 @@ const baseDatosIngredientes = {
         {cod: "16075", nom: "EXTRACTE ESPECIES   [2 g/kg]", base: "0,09", uni: "kg"}
     ],
     "56": [
-        {cod: "30002", nom: "CARNS CUIDES A CUINA", base: "30,7", uni: "kg"},
-        {cod: "40", nom: "MORRO PORC", base: "10,4", uni: "kg"},
+        {cod: "30002", nom: "CARNS CUIDES A CUINA", base: "17,64", uni: "kg"},
+        {cod: "", nom: "", base: "", uni: ""},
+        {cod: "10861", nom: "COTNA PORC", base: "3,6", uni: "kg"},
+        {cod: "40", nom: "MORRO PORC", base: "5,180", uni: "kg"},
+        {cod: "7020", nom: "RETALL CAP PORC", base: "3,48", uni: "kg"},
+        {cod: "6482", nom: "PULMONS PORC", base: "4,46", uni: "kg"},
+        {cod: "10860", nom: "CORS PORC", base: "0,92", uni: "kg"},
+        {cod: "", nom: "", base: "", uni: ""},
         {cod: "15", nom: "PAPADA A/PELL PORC", base: "8,68", uni: "kg"},
-        {cod: "7020", nom: "RETALL CAP PORC", base: "8,32", uni: "kg"},
-        {cod: "47878", nom: "TRIPA CERDO 36/38", base: "8", uni: "un"},
-        {cod: "10860", nom: "CORS PORC", base: "6,42", uni: "kg"},
-        {cod: "7400", nom: "SANG PORC", base: "6", uni: "Litros"},
-        {cod: "2671", nom: "GREIX PORC per negra", base: "5,3", uni: "kg"},
-        {cod: "6482", nom: "PULMONS PORC", base: "4,66", uni: "kg"},
+        {cod: "7400", nom: "SANG PORC", base: "9.66", uni: "Litros"},
+        {cod: "2671", nom: "GREIX PORC per negra", base: "4,46", uni: "kg"},
         {cod: "47403", nom: "SAL FINA", base: "0,675", uni: "kg"},
-        {cod: "46429", nom: "PEBRE NEGRE MOLT FI", base: "0,125", uni: "kg"}
+        {cod: "46429", nom: "PEBRE NEGRE MOLT FI", base: "0,125", uni: "kg"},
+        {cod: "47878", nom: "TRIPA CERDO 36/38", base: "8", uni: "un"},
     ],
     "58": [
         {cod: "2", nom: "PERNIL FRESC SENSE OS", base: "20", uni: "kg"},
@@ -456,7 +466,6 @@ document.addEventListener("DOMContentLoaded", () => {
         badge.classList.replace("bg-warning", "bg-danger");
     });
 
-    // Función auxiliar para parsear filas de un archivo CSV con soporte para comillas
     function parsearLineaCSV(linea) {
         let resultado = [];
         let dentroDeComillas = false;
@@ -481,7 +490,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const lineas = csvText.split(/\r?\n/);
         if (lineas.length < 2) return;
 
-        // Fila 1: Encabezados
         const headers = parsearLineaCSV(lineas[0]);
         const colCodigo = headers.indexOf("Codigo Articulo");
         const colLote = headers.indexOf("IdLote");
@@ -493,7 +501,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         lotesTemporalesSAGE = {};
 
-        // Recorremos las filas desde el final (más nuevas) hacia el principio
         for (let i = lineas.length - 1; i >= 1; i--) {
             if (!lineas[i].trim()) continue;
             const columnas = parsearLineaCSV(lineas[i]);
@@ -506,7 +513,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (!lotesTemporalesSAGE[codigo]) {
                         lotesTemporalesSAGE[codigo] = [];
                     }
-                    // Evitar duplicados del mismo lote y almacenar un máximo de 3 lotes más nuevos
                     if (!lotesTemporalesSAGE[codigo].includes(lote) && lotesTemporalesSAGE[codigo].length < 3) {
                         lotesTemporalesSAGE[codigo].push(lote);
                     }
@@ -529,18 +535,29 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         baseDatosIngredientes[recetaId].forEach((item, index) => {
-            // Obtenemos los lotes. Si no hay ninguno, colocamos ["SENSE LOTE"]
+            // Línea separadora modificada para abarcar 7 columnas en lugar de 6
+            if (item.cod === "" && item.nom === "") {
+                const filaSeparador = document.createElement("tr");
+                filaSeparador.innerHTML = `
+                    <td colspan="7" class="p-0">
+                        <div style="height: 4px; background-color: #ced4da; margin: 4px 0;"></div>
+                    </td>
+                `;
+                tbody.appendChild(filaSeparador);
+                return;
+            }
+
             const listaLotes = lotesTemporalesSAGE[item.cod] || ["SENSE LOTE"];
             
-            // Generamos dinámicamente las opciones del select de lotes
             let opcionesLotesHTML = "";
             listaLotes.forEach((lote, idx) => {
                 const seleccionado = idx === 0 ? "selected" : "";
                 opcionesLotesHTML += `<option value="${lote}" ${seleccionado}>${lote}</option>`;
             });
-            opcionesLotesHTML += `<option value="__MANUAL__">✍️ Introduïr manual...</option>`; //
+            opcionesLotesHTML += `<option value="__MANUAL__">✍️ Introduïr manual...</option>`; 
 
             const fila = document.createElement("tr");
+            // Se añade la columna del checkbox con la clase .scale-checkbox
             fila.innerHTML = `
                 <td class="item-codi">${item.cod}</td>
                 <td class="item-nombre">${item.nom}</td>
@@ -551,6 +568,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 </td>
                 <td class="cantidad-base-valor" data-base="${item.base.replace(',', '.')}">${item.base}</td>
                 <td class="item-unidad">${item.uni}</td>
+                <td class="text-center align-middle">
+                    <input class="form-check-input scale-checkbox" type="checkbox" checked title="Incloure a l'escalat proporcional">
+                </td>
                 <td>
                     <input type="text" inputmode="decimal" class="form-control form-control-lg num-input" 
                            name="cantidad_${recetaId}_${index}" 
@@ -568,7 +588,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function asignarEventosInputs() {
-        // Clic en cantidad (Uso Real) -> Abre teclado Numérico
         document.querySelectorAll(".num-input").forEach(input => {
             input.addEventListener("click", (e) => {
                 e.stopPropagation(); 
@@ -580,7 +599,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // --- EVENTOS DEL TECLADO NUMÉRICO ---
     numpad.addEventListener("click", (e) => {
         e.stopPropagation(); 
         if (!currentInput || !e.target.classList.contains("btn-num")) return;
@@ -600,7 +618,6 @@ document.addEventListener("DOMContentLoaded", () => {
         } 
     });
 
-    // --- EVENTOS DEL TECLADO ALFANUMÉRICO (QWERTY) ---
     alphapad.addEventListener("click", (e) => {
         e.stopPropagation();
         if (!currentLoteInput || !e.target.classList.contains("btn-key")) return;
@@ -615,11 +632,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Cierre seguro al pulsar fuera de los teclados
     document.addEventListener("click", () => { ocultarTeclados(); });
 });
 
-// Transforma el select en un input interactivo adaptado a la tablet
 function gestionarCambioLote(elementoSelect) {
     if (elementoSelect.value === "__MANUAL__") {
         const celdaContenedora = elementoSelect.parentElement;
@@ -630,7 +645,6 @@ function gestionarCambioLote(elementoSelect) {
         
         const nuevoInput = celdaContenedora.querySelector('input');
         
-        // Asignar evento de clic al nuevo cuadro manual para activar el teclado QWERTY
         nuevoInput.addEventListener("click", (e) => {
             e.stopPropagation();
             ocultarTeclados();
@@ -639,7 +653,6 @@ function gestionarCambioLote(elementoSelect) {
             document.getElementById("alphanumeric-keyboard").classList.remove("hidden");
         });
 
-        // Forzar la apertura del teclado QWERTY inmediatamente tras seleccionarlo
         nuevoInput.click();
     }
 }
@@ -668,9 +681,19 @@ function calcularSumaTotales() {
     document.getElementById("total-real-campo").innerText = Number(sumaReal.toFixed(3)).toString().replace('.', ',');
 }
 
+// Lógica de cálculo proporcional modificada para el checkbox
 function ejecutarRecalculoProporcional() {
     if (!currentInput) return;
     const filaActual = currentInput.closest("tr");
+    
+    // Si el ingrediente que el usuario está modificando NO está marcado (false),
+    // cancelamos el recálculo proporcional del resto de ingredientes, pero actualizamos el total.
+    const checkboxActual = filaActual.querySelector(".scale-checkbox");
+    if (checkboxActual && !checkboxActual.checked) {
+        calcularSumaTotales(); 
+        return; 
+    }
+
     const valorIntroducido = parseFloat(currentInput.value.replace(',', '.')) || 0;
     const baseActual = parseFloat(filaActual.querySelector(".cantidad-base-valor").getAttribute("data-base"));
 
@@ -680,16 +703,25 @@ function ejecutarRecalculoProporcional() {
     const filas = document.querySelectorAll("#tabla-ingredientes-body tr");
 
     filas.forEach(fila => {
+        // Ignorar líneas separadoras
+        if (!fila.querySelector(".cantidad-base-valor")) return;
+        
+        // Ignorar la propia fila que se está editando
         if (fila === filaActual) return;
+        
+        // Ignorar las filas en las que el usuario haya desmarcado la opción (false)
+        const checkboxFila = fila.querySelector(".scale-checkbox");
+        if (checkboxFila && !checkboxFila.checked) return;
+
         const baseFila = parseFloat(fila.querySelector(".cantidad-base-valor").getAttribute("data-base"));
         const inputFila = fila.querySelector(".num-input");
         const nuevaCantidad = baseFila * factorEscala;
         inputFila.value = Number(nuevaCantidad.toFixed(4)).toString().replace('.', ',');
     });
+    
     calcularSumaTotales();
 }
 
-// MODIFICADO: Función de envío compatible y segura
 function enviarAGoogleSheets(event) {
     event.preventDefault(); 
     const selectReceta = document.getElementById("receta");
@@ -702,7 +734,6 @@ function enviarAGoogleSheets(event) {
     btnGuardar.disabled = true;
     btnGuardar.innerText = "Guardando...";
 
-    // Generamos el lote interno silencioso (DDMMAAEO)
     const loteInternoCalculado = generarLoteInternoSilencioso();
 
     const payload = {
@@ -713,6 +744,8 @@ function enviarAGoogleSheets(event) {
     };
 
     filas.forEach(fila => {
+        if (!fila.querySelector(".item-codi")) return;
+
         const campoLoteSelect = fila.querySelector(".select-lote-personalizado");
         const campoLoteManual = fila.querySelector(".input-lote-manual");
         
@@ -727,16 +760,15 @@ function enviarAGoogleSheets(event) {
             codi: fila.querySelector(".item-codi").innerText,
             nombre: fila.querySelector(".item-nombre").innerText,
             lote: loteFinal,
-            loteInterno: loteInternoCalculado, // Enviamos el lote DDMMAAEO generado silenciosamente
+            loteInterno: loteInternoCalculado, 
             cantidad: fila.querySelector(".num-input").value,
             unidad: fila.querySelector(".item-unidad").innerText
         });
     });
 
-    // Enviamos sin 'no-cors' para asegurar que el registro sea exitoso
     fetch(WEB_APP_URL, {
         method: "POST",
-        headers: { "Content-Type": "text/plain" }, // Usar text/plain evita problemas de CORS simples con Apps Script
+        headers: { "Content-Type": "text/plain" },
         body: JSON.stringify(payload)
     })
     .then(response => {
@@ -750,12 +782,11 @@ function enviarAGoogleSheets(event) {
     });
 }
 
-// NUEVA FUNCIÓN: Agregada al HTML para calcular el lote DDMMAAEO automáticamente
 function generarLoteInternoSilencioso() {
     const hoy = new Date();
     const dia = String(hoy.getDate()).padStart(2, '0');
-    const mes = String(hoy.getMonth() + 1).padStart(2, '0'); // Meses en JavaScript van de 0 a 11
-    const anio = String(hoy.getFullYear()).slice(-2); // Últimos 2 dígitos del año
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0'); 
+    const anio = String(hoy.getFullYear()).slice(-2); 
     return `${dia}${mes}${anio}EO`;
 }
 </script>
