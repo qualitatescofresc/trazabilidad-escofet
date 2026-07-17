@@ -91,32 +91,32 @@
             <div class="card p-4">
                 <h3>1. Selecció</h3>
                 <label for="receta" class="form-label text-muted">Seleccioneu la recepta a preparar:</label>
-                    <select class="form-select form-select-lg mb-3" id="receta">
-                        <option value="">-- Buscar Codi --</option>
-                        <option value="30">30 - CRUDO BUTIFARRA SALTXI</option>
-                        <option value="31">31 - SALTXITXES DE PORC</option>                        
-                        <option value="32">32 - CARN PICADA PORC</option>
-                        <option value="34">34 - XORIÇ FRESC</option>
-                        <option value="36">36 - BURGER MEAT VACA</option>
-                        <option value="37">37 - BOTIFARRA DE ROVELLONS</option>
-                        <option value="54">54/55 - BULL BLANC / BOTIFARRA BLANCA</option>
-                        <option value="56">56/57 - BOTIFARRA FAVES / BOTIFARRA NEGRA </option>    
-                        <option value="58">58 - BUTIFARRA CATALANA</option>                      
-                        <option value="105">105 - XISTORRA</option>
-                        <option value="197">197 - XORIÇ CRIOLL</option>
-                        <option value="223">223 - SMASH BURGUER</option>
-                        <option value="225">225 - PICADA COSTELLA VEDELLA</option>
-                        <option value="226">226 - BURGER MEAT VEDELLA</option>
-                        <option value="228">228 - CARN PICADA VEDELLA</option>
-                        <option value="229">229 - MANDONGUILLES VEDELL</option>
-                        <option value="303">303 - BURGER MEAT POLLASTRE</option>
-                        <option value="317">317 - SALSITXES POLLASTRE</option>
-                        <option value="2031">2031 - BURGER MEAT VACA PREMIUM</option>
-                        <option value="10035">10035 - BURGUER MEAT VEDELLA - ANGUS</option>
-                        <option value="10042">10042 - BURGER MEAT VEDELLA</option>
-                        <option value="20115">20115 - BURGER COSTELLA VEDELLA</option>
-                        <option value="69996">69996 - PICADA VEDELLA EXTRA</option> 
-                    </select>
+                <select class="form-select form-select-lg mb-3" id="receta">
+                    <option value="">-- Buscar Codi --</option>
+                    <option value="30">30 - CRUDO BUTIFARRA SALTXI</option>
+                    <option value="31">31 - SALTXITXES DE PORC</option>                        
+                    <option value="32">32 - CARN PICADA PORC</option>
+                    <option value="34">34 - XORIÇ FRESC</option>
+                    <option value="36">36 - BURGER MEAT VACA</option>
+                    <option value="37">37 - BOTIFARRA DE ROVELLONS</option>
+                    <option value="54">54/55 - BULL BLANC / BOTIFARRA BLANCA</option>
+                    <option value="56">56/57 - BOTIFARRA FAVES / BOTIFARRA NEGRA </option>    
+                    <option value="58">58 - BUTIFARRA CATALANA</option>                      
+                    <option value="105">105 - XISTORRA</option>
+                    <option value="197">197 - XORIÇ CRIOLL</option>
+                    <option value="223">223 - SMASH BURGUER</option>
+                    <option value="225">225 - PICADA COSTELLA VEDELLA</option>
+                    <option value="226">226 - BURGER MEAT VEDELLA</option>
+                    <option value="228">228 - CARN PICADA VEDELLA</option>
+                    <option value="229">229 - MANDONGUILLES VEDELL</option>
+                    <option value="303">303 - BURGER MEAT POLLASTRE</option>
+                    <option value="317">317 - SALSITXES POLLASTRE</option>
+                    <option value="2031">2031 - BURGER MEAT VACA PREMIUM</option>
+                    <option value="10035">10035 - BURGUER MEAT VEDELLA - ANGUS</option>
+                    <option value="10042">10042 - BURGER MEAT VEDELLA</option>
+                    <option value="20115">20115 - BURGER COSTELLA VEDELLA</option>
+                    <option value="69996">69996 - PICADA VEDELLA EXTRA</option> 
+                </select>
             </div>
         </div>
 
@@ -143,13 +143,13 @@
                                 </tr>
                             </thead>
                             <tbody id="tabla-ingredientes-body">
-                                </tbody>
+                            </tbody>
                             <tfoot class="table-dark">
                                 <tr class="fw-bold">
                                     <td colspan="3">TOTAL FORMULACIÓ BATCH</td>
                                     <td id="total-base-campo">-</td>
                                     <td>kg</td>
-                                    <td></td> <!-- Espacio extra por la nueva columna -->
+                                    <td></td>
                                     <td id="total-real-campo">-</td>
                                 </tr>
                             </tfoot>
@@ -237,15 +237,16 @@
 
 <script>
 // URL de tu Apps Script (Únicamente para GUARDAR trazabilidad, función POST)
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyuHVCLFAutjMo2qdiQzDKuewempmC1rW-Hsoyo6DRGaRhCP2MdZZQIpHwmTFBQqyu-sQ/exec"; // <-- REEMPLAZA CON TU WEB APP URL REAL
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyuHVCLFAutjMo2qdiQzDKuewempmC1rW-Hsoyo6DRGaRhCP2MdZZQIpHwmTFBQqyu-sQ/exec";
 
-// URL de exportación directa a CSV de tu documento de SAGE (ID: 1svOd-IdYqybrTdijHOqvG5dOdJEOk-QHtRZTHcdTvZ4)
+// URL de exportación directa a CSV de tu documento de SAGE
 const SAGE_CSV_URL = "https://docs.google.com/spreadsheets/d/1svOd-IdYqybrTdijHOqvG5dOdJEOk-QHtRZTHcdTvZ4/gviz/tq?tqx=out:csv&sheet=Hoja%201";
 
 let lotesTemporalesSAGE = {};
 let currentInput = null;
-let currentLoteInput = null; 
+let currentLoteInput = null;
 
+// Se añade 'excluirTotal: true' a ingredientes como tripas (un) o líquidos (Litros) para que no alteren el peso final en kg
 const baseDatosIngredientes = {
     "30": [
         {cod: "2", nom: "CARN MAGRA PORC", base: "50", uni: "kg"},
@@ -271,7 +272,7 @@ const baseDatosIngredientes = {
     "34": [
         {cod: "10023", nom: "RETALL BACO 50/50", base: "30", uni: "kg"},
         {cod: "17818", nom: "TIRA DE LLOM", base: "10", uni: "kg"},
-        {cod: "47873", nom: "TRIPA CERDO 28/30", base: "3", uni: "un"},
+        {cod: "47873", nom: "TRIPA CERDO 28/30", base: "3", uni: "un", excluirTotal: true},
         {cod: "16035", nom: "PREPARAT XORIÇ", base: "2,815", uni: "kg"},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "0,2", uni: "kg"}
     ],
@@ -279,14 +280,13 @@ const baseDatosIngredientes = {
         {cod: "70014", nom: "PEIXET PAPADA VEDELL", base: "50", uni: "kg"},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "5", uni: "kg"},
         {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,586", uni: "kg"}
-
     ],
     "54": [
         {cod: "30002", nom: "PRODUCTE CUIT INTERMIG", base: "3", uni: "kg"},
         {cod: "", nom: "", base: "", uni: ""},
-        {cod: "11", nom: "LLENGUES PORC", base: "0,613", uni: "kg"},
-        {cod: "6482", nom: "PULMONS PORC", base: "1,099", uni: "kg"},
-        {cod: "10860", nom: "CORS PORC", base: "1,287", uni: "kg"},
+        {cod: "11", nom: "LLENGUES PORC", base: "0,613", uni: "kg", excluirTotal: true},
+        {cod: "6482", nom: "PULMONS PORC", base: "1,099", uni: "kg", excluirTotal: true},
+        {cod: "10860", nom: "CORS PORC", base: "1,287", uni: "kg", excluirTotal: true},
         {cod: "", nom: "", base: "", uni: ""},
         {cod: "2", nom: "CARN MAGRA PORC", base: "17", uni: "kg"},
         {cod: "48", nom: "PAPADA PORC SENSE PELL", base: "10", uni: "kg"},
@@ -294,23 +294,23 @@ const baseDatosIngredientes = {
         {cod: "47403", nom: "SAL FINA", base: "0,48", uni: "kg"},
         {cod: "46436", nom: "PEBRE BLANC MOLT FI  [3 g/kg]", base: "0,090", uni: "kg"},
         {cod: "16075", nom: "EXTRACTE ESPECIES   [2 g/kg]", base: "0,06", uni: "kg"},
-        {cod: "47873", nom: "TRIPA CERDO 28/30", base: "2,5", uni: "un"}
+        {cod: "47873", nom: "TRIPA CERDO 28/30", base: "2,5", uni: "un", excluirTotal: true}
     ],
     "56": [
         {cod: "30002", nom: "CARNS CUIDES A CUINA", base: "27,65", uni: "kg"},
         {cod: "", nom: "", base: "", uni: ""},
-        {cod: "15", nom: "PAPADA A/PELL PORC", base: "10", uni: "kg"},
-        {cod: "10861", nom: "COTNA PORC", base: "3,6", uni: "kg"},
-        {cod: "40", nom: "MORRO PORC", base: "5,180", uni: "kg"},
-        {cod: "7020", nom: "RETALL CAP PORC", base: "3,48", uni: "kg"},
-        {cod: "6482", nom: "PULMONS PORC", base: "4,46", uni: "kg"},
-        {cod: "10860", nom: "CORS PORC", base: "0,92", uni: "kg"},
+        {cod: "15", nom: "PAPADA A/PELL PORC", base: "10", uni: "kg", excluirTotal: true},
+        {cod: "10861", nom: "COTNA PORC", base: "3,6", uni: "kg", excluirTotal: true},
+        {cod: "40", nom: "MORRO PORC", base: "5,180", uni: "kg", excluirTotal: true},
+        {cod: "7020", nom: "RETALL CAP PORC", base: "3,48", uni: "kg", excluirTotal: true},
+        {cod: "6482", nom: "PULMONS PORC", base: "4,46", uni: "kg", excluirTotal: true},
+        {cod: "10860", nom: "CORS PORC", base: "0,92", uni: "kg", excluirTotal: true},
         {cod: "", nom: "", base: "", uni: ""},
         {cod: "7400", nom: "SANG PORC", base: "6", uni: "Litros"},
         {cod: "2671", nom: "GREIX PORC per negra", base: "6,95", uni: "kg"},
         {cod: "47403", nom: "SAL FINA", base: "0,650", uni: "kg"},
         {cod: "46429", nom: "PEBRE NEGRE MOLT FI", base: "0,120", uni: "kg"},
-        {cod: "47878", nom: "TRIPA CERDO 36/38", base: "4", uni: "un"},
+        {cod: "47878", nom: "TRIPA CERDO 36/38", base: "4", uni: "un", excluirTotal: true}
     ],
     "58": [
         {cod: "2", nom: "PERNIL FRESC SENSE OS", base: "20", uni: "kg"},
@@ -327,20 +327,20 @@ const baseDatosIngredientes = {
         {cod: "30002", nom: "PRODUCTE CUIT INTERMIG", base: "51", uni: "kg"},
         {cod: "15", nom: "PAPADA A/PELL PORC [limpia]", base: "12", uni: "kg"},
         {cod: "40", nom: "MORRO PORC", base: "10,4", uni: "kg"},
-        {cod: "7020", nom: "RETALL CAP PORC", base: "8,32", uni: "kg"},
-        {cod: "47878", nom: "TRIPA CERDO 36/38", base: "8", uni: "un"},
-        {cod: "10860", nom: "CORS PORC", base: "6,42", uni: "kg"},
-        {cod: "6482", nom: "PULMONS PORC", base: "4,66", uni: "kg"},
-        {cod: "18434", nom: "VENTRE PORC", base: "3,98", uni: "kg"},
-        {cod: "11", nom: "LLENGUES PORC", base: "2,22", uni: "kg"},
+        {cod: "7020", nom: "RETALL CAP PORC", base: "8,32", uni: "kg", excluirTotal: true},
+        {cod: "10860", nom: "CORS PORC", base: "6,42", uni: "kg", excluirTotal: true},
+        {cod: "6482", nom: "PULMONS PORC", base: "4,66", uni: "kg", excluirTotal: true},
+        {cod: "18434", nom: "VENTRE PORC", base: "3,98", uni: "kg", excluirTotal: true},
+        {cod: "11", nom: "LLENGUES PORC", base: "2,22", uni: "kg", excluirTotal: true},
         {cod: "47403", nom: "SAL FINA 16  g/kg", base: "1,01", uni: "kg"},
-        {cod: "46429", nom: "PEBRE NEGRE 3,5 g/kg", base: "0,22", uni: "kg"}
+        {cod: "46429", nom: "PEBRE NEGRE 3,5 g/kg", base: "0,22", uni: "kg"},
+        {cod: "47878", nom: "TRIPA CERDO 36/38", base: "8", uni: "un", excluirTotal: true},
     ],
     "95": [
         {cod: "2", nom: "ESPATLLA S/OS PORC", base: "7,6", uni: "kg"},
         {cod: "43067", nom: "OU LIQUIT PASTEURITZAT", base: "7", uni: "Litros"},
         {cod: "48", nom: "PAPADA PORC S/PELL", base: "4,4", uni: "kg"},
-        {cod: "47873", nom: "TRIPA CERDO 28/30", base: "3", uni: "un"},
+        {cod: "47873", nom: "TRIPA CERDO 28/30", base: "3", uni: "un", excluirTotal: true},
         {cod: "379", nom: "ROVELL OU", base: "1", uni: "Litros"},
         {cod: "47403", nom: "SAL FINA", base: "0,3", uni: "kg"},
         {cod: "16075", nom: "EXTRACTE ESPECIES   [2 g/kg]", base: "0,04", uni: "kg"},
@@ -350,16 +350,16 @@ const baseDatosIngredientes = {
         {cod: "10023", nom: "RETALL BACO 50/50", base: "30", uni: "kg"},
         {cod: "17818", nom: "TIRA DE LLOM", base: "10", uni: "kg"},
         {cod: "16034", nom: "PREPARAT XISTORRA", base: "2,815", uni: "kg"},
-        {cod: "47876", nom: "TRIPA XAI 22/24", base: "0,23", uni: "un"},
+        {cod: "47876", nom: "TRIPA XAI 22/24", base: "0,23", uni: "un", excluirTotal: true},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "0,2", uni: "kg"}
     ],
     "197": [
-        {cod: "40486", nom: "BOLSA VACIO 250X350", base: "9", uni: "kg"},
+        {cod: "40486", nom: "BOLSA VACIO 250X350", base: "9", uni: "kg", excluirTotal: true},
         {cod: "70040", nom: "CARN VEDELLA", base: "5", uni: "kg"},
         {cod: "10023", nom: "RETALL BACO 50/50", base: "5", uni: "kg"},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "0,5", uni: "kg"},
         {cod: "46472", nom: "PREP. CRIOLLO", base: "0,5", uni: "kg"},
-        {cod: "47873", nom: "TRIPA CERDO 28/30", base: "0,2", uni: "un"}
+        {cod: "47873", nom: "TRIPA CERDO 28/30", base: "0,2", uni: "un", excluirTotal: true}
     ],
     "223": [
         {cod: "70014", nom: "PEIXET PAPADA VEDELL", base: "50", uni: "kg"},
@@ -376,7 +376,7 @@ const baseDatosIngredientes = {
     "226": [
         {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg"},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "5", uni: "kg"},
-        {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,485", uni: "kg"},
+        {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,485", uni: "kg"}
     ],
     "228": [
         {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg"},
@@ -390,7 +390,6 @@ const baseDatosIngredientes = {
         {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,725", uni: "kg"},
         {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,948", uni: "kg"}
     ],
-
     "303": [
         {cod: "10006", nom: "CARN POLLASTRE", base: "40", uni: "kg"},
         {cod: "301", nom: "PIT POLLASTRE", base: "40", uni: "kg"},
@@ -400,7 +399,7 @@ const baseDatosIngredientes = {
     "317": [
         {cod: "301", nom: "PIT POLLASTRE", base: "12,5", uni: "kg"},
         {cod: "10006", nom: "CARN POLLASTRE", base: "12,5", uni: "kg"},
-        {cod: "47876", nom: "TRIPA XAI 22/24", base: "3", uni: "un"},
+        {cod: "47876", nom: "TRIPA XAI 22/24", base: "3", uni: "un", excluirTotal: true},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "1,25", uni: "kg"},
         {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "0,79", uni: "kg"},
         {cod: "16076", nom: "FIBRA DE PESOL", base: "0,5", uni: "kg"}
@@ -419,23 +418,23 @@ const baseDatosIngredientes = {
     "20115": [
         {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg"},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "5", uni: "kg"},
-        {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,586", uni: "kg"},
+        {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,586", uni: "kg"}
     ],
     "30005": [
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "10", uni: "kg"},
         {cod: "40", nom: "MORRO PORC", base: "8,34", uni: "kg"},
         {cod: "11", nom: "LLENGUES PORC", base: "8,32", uni: "kg"},
-        {cod: "47878", nom: "TRIPA CERDO 36/38", base: "5", uni: "un"},
+        {cod: "47878", nom: "TRIPA CERDO 36/38", base: "5", uni: "un", excluirTotal: true},
         {cod: "2", nom: "ESPATLLA S/OS PORC", base: "3,5", uni: "kg"},
         {cod: "47403", nom: "SAL FINA", base: "1,725", uni: "kg"},
         {cod: "43820", nom: "VALDESPINO SECO VINO", base: "0,18", uni: "kg"},
         {cod: "2129", nom: "SUCRE BLANC 1 KG 4g/kg", base: "0,08", uni: "kg"},
         {cod: "45633", nom: "SAL NITRIFICANT 2g/kg", base: "0,075", uni: "kg"},
         {cod: "46436", nom: "PEBRE BLANC MOLT FI", base: "0,054", uni: "kg"},
-        {cod: "47403", nom: "SAL FINA", base: "0,05", uni: "kg"},
-        {cod: "2129", nom: "SUCRE BLANC 1 KG 4g/kg", base: "0,015", uni: "kg"},
+        {cod: "47403", nom: "SAL FINA (Massa)", base: "0,05", uni: "kg"},
+        {cod: "2129", nom: "SUCRE BLANC (Massa)", base: "0,015", uni: "kg"},
         {cod: "45634", nom: "NOU MOSCADA 0.0005/kg", base: "0,009", uni: "kg"},
-        {cod: "45633", nom: "SAL NITRIFICANT 2g/kg", base: "0,007", uni: "kg"}
+        {cod: "45633", nom: "SAL NITRIFICANT (Massa)", base: "0,007", uni: "kg"}
     ],
     "69996": [
         {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg"},
@@ -538,7 +537,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         baseDatosIngredientes[recetaId].forEach((item, index) => {
-            // Línea separadora modificada para abarcar 7 columnas en lugar de 6
             if (item.cod === "" && item.nom === "") {
                 const filaSeparador = document.createElement("tr");
                 filaSeparador.innerHTML = `
@@ -560,7 +558,12 @@ document.addEventListener("DOMContentLoaded", () => {
             opcionesLotesHTML += `<option value="__MANUAL__">✍️ Introduïr manual...</option>`; 
 
             const fila = document.createElement("tr");
-            // Se añade la columna del checkbox con la clase .scale-checkbox
+
+            if (item.excluirTotal) {
+                fila.setAttribute("data-excluir", "true");
+                fila.style.borderLeft = "4px solid #ffc107"; 
+            }
+
             fila.innerHTML = `
                 <td class="item-codi">${item.cod}</td>
                 <td class="item-nombre">${item.nom}</td>
@@ -673,24 +676,33 @@ function destacarFila(elemento) {
 }
 
 function calcularSumaTotales() {
-    let sumaBase = 0; let sumaReal = 0;
-    document.querySelectorAll(".cantidad-base-valor").forEach(td => {
-        sumaBase += parseFloat(td.getAttribute("data-base")) || 0;
+    let sumaBase = 0; 
+    let sumaReal = 0;
+
+    const filas = document.querySelectorAll("#tabla-ingredientes-body tr");
+
+    filas.forEach(fila => {
+        if (fila.getAttribute("data-excluir") === "true") return;
+
+        const tdBase = fila.querySelector(".cantidad-base-valor");
+        const inputReal = fila.querySelector(".num-input");
+
+        if (tdBase) {
+            sumaBase += parseFloat(tdBase.getAttribute("data-base")) || 0;
+        }
+        if (inputReal) {
+            sumaReal += parseFloat(inputReal.value.replace(',', '.')) || 0;
+        }
     });
-    document.querySelectorAll(".num-input").forEach(input => {
-        sumaReal += parseFloat(input.value.replace(',', '.')) || 0;
-    });
+
     document.getElementById("total-base-campo").innerText = Number(sumaBase.toFixed(3)).toString().replace('.', ',');
     document.getElementById("total-real-campo").innerText = Number(sumaReal.toFixed(3)).toString().replace('.', ',');
 }
 
-// Lógica de cálculo proporcional modificada para el checkbox
 function ejecutarRecalculoProporcional() {
     if (!currentInput) return;
     const filaActual = currentInput.closest("tr");
     
-    // Si el ingrediente que el usuario está modificando NO está marcado (false),
-    // cancelamos el recálculo proporcional del resto de ingredientes, pero actualizamos el total.
     const checkboxActual = filaActual.querySelector(".scale-checkbox");
     if (checkboxActual && !checkboxActual.checked) {
         calcularSumaTotales(); 
@@ -706,13 +718,9 @@ function ejecutarRecalculoProporcional() {
     const filas = document.querySelectorAll("#tabla-ingredientes-body tr");
 
     filas.forEach(fila => {
-        // Ignorar líneas separadoras
         if (!fila.querySelector(".cantidad-base-valor")) return;
-        
-        // Ignorar la propia fila que se está editando
         if (fila === filaActual) return;
         
-        // Ignorar las filas en las que el usuario haya desmarcado la opción (false)
         const checkboxFila = fila.querySelector(".scale-checkbox");
         if (checkboxFila && !checkboxFila.checked) return;
 
