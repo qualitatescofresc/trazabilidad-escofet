@@ -12,10 +12,20 @@
         .btn-lg { padding: 15px 30px; font-size: 1.25rem; } 
         .fila-limitante { background-color: #fff3cd !important; transition: background-color 0.2s ease; }
 
+        /* Ajuste estrecho para la columna Quantitat Base */
+        .tabla-produccion th:nth-child(4),
+        .tabla-produccion td:nth-child(4) {
+            width: 1% !important;
+            white-space: nowrap !important;
+            padding-left: 5px !important;
+            padding-right: 5px !important;
+            text-align: center;
+        }
+
         /* Emparejamiento de tamaño estricto para la columna de lotes */
         .select-lote-personalizado, .input-lote-manual {
             font-size: 1.25rem !important;
-            height: calc(3.5rem + 2px); /* Iguala la altura exacta del form-control-lg */
+            height: calc(3.5rem + 2px); 
             font-weight: bold !important;
         }
 
@@ -93,7 +103,7 @@
                 <label for="receta" class="form-label text-muted">Seleccioneu la recepta a preparar:</label>
                 <select class="form-select form-select-lg mb-3" id="receta">
                     <option value="">-- Buscar Codi --</option>
-                    <option value="77777"> CRUDO PER BUTTIFARRA SALTXI</option>
+                    <option value="77777"> CRUDO PER BUTIFFARRA SALTXI</option>
                     <option value="88888"> CRUDO POLLASTRE PER BURGERS SALTXI</option>
                     <option value="30">30 - BUTIFARRA DE PORC</option>
                     <option value="31">31 - SALTXITXES DE PORC</option>                        
@@ -130,7 +140,7 @@
 
         <div class="col-12">
             <div class="card p-4">
-                <h3>2. Disponibilitat i Escalat</h3>
+                <h3>2. Disponibilidad y Escalado</h3>
                 
                 <div id="no-receta-msg" class="text-center text-muted mt-5">
                     Seleccione una receta para ver los detalles de stock.
@@ -138,7 +148,7 @@
 
                 <div id="tabla-contenedor" class="d-none">
                     <form id="form-batch" onsubmit="enviarAGoogleSheets(event)">
-                        <table class="table table-hover mt-3 align-middle">
+                        <table class="table table-hover mt-3 align-middle tabla-produccion">
                             <thead class="table-light">
                                 <tr>
                                     <th>Codi</th>
@@ -147,7 +157,7 @@
                                     <th>Quantitat Base</th>
                                     <th>Unitat</th>
                                     <th class="text-center" style="width: 90px;">Escalat<br>Automàtic</th>
-                                    <th style="width: 260px;">Ús Real (Limitant)</th>
+                                    <th>Ús Real (Limitant)</th>
                                 </tr>
                             </thead>
                             <tbody id="tabla-ingredientes-body">
@@ -155,8 +165,8 @@
                             <tfoot class="table-dark">
                                 <tr class="fw-bold">
                                     <td colspan="3">TOTAL FORMULACIÓ BATCH</td>
-                                    <td id="total-base-campo">-</td>
-                                    <td>kg</td>
+                                    <td id="total-base-campo" class="text-center">-</td>
+                                    <td></td>
                                     <td></td>
                                     <td id="total-real-campo">-</td>
                                 </tr>
@@ -244,17 +254,13 @@
 </div>
 
 <script>
-// URL de tu Apps Script (Únicamente para GUARDAR trazabilidad, función POST)
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyuHVCLFAutjMo2qdiQzDKuewempmC1rW-Hsoyo6DRGaRhCP2MdZZQIpHwmTFBQqyu-sQ/exec";
-
-// URL de exportación directa a CSV de tu documento de SAGE
 const SAGE_CSV_URL = "https://docs.google.com/spreadsheets/d/1svOd-IdYqybrTdijHOqvG5dOdJEOk-QHtRZTHcdTvZ4/gviz/tq?tqx=out:csv&sheet=Hoja%201";
 
 let lotesTemporalesSAGE = {};
 let currentInput = null;
 let currentLoteInput = null;
 
-// Se añade 'usaCarro: true' en los ingredientes principales que requieran selección de tara de carro
 const baseDatosIngredientes = {
     "77777": [
         {cod: "2", nom: "CARN MAGRA PORC", base: "50", uni: "kg", usaCarro: true},
@@ -268,7 +274,6 @@ const baseDatosIngredientes = {
         {cod: "40084", nom: "SAFATA 320.260.50", base: "20", uni: "un", excluirTotal: true},
         {cod: "77777", nom: "CRUDO PER BUTIFFARRA SALTXITXAS", base: "30", uni: "kg"},
         {cod: "47873", nom: "TRIPA DE PORC 28/30", base: "7", uni: "un", excluirTotal: true}
-
     ],
     "31": [
         {cod: "40084", nom: "SAFATA 320.260.50", base: "20", uni: "un", excluirTotal: true},        
@@ -297,7 +302,6 @@ const baseDatosIngredientes = {
         {cod: "77777", nom: "CRUDO PER BUTIFFARRA SALTXITXAS", base: "30", uni: "kg"},
         {cod: "47873", nom: "TRIPA DE PORC 28/30", base: "7", uni: "un", excluirTotal: true},
         {cod: "47065", nom: "ROVELLO TROSSOS 3 KG", base: "1,62", uni: "kg"}
-
     ],
     "54": [
         {cod: "30002", nom: "PRODUCTE CUIT INTERMIG", base: "3", uni: "kg"},
@@ -523,7 +527,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const numpad = document.getElementById("numeric-pad");
     const alphapad = document.getElementById("alphanumeric-keyboard");
 
-    // DESCARGAR DIRECTAMENTE DESDE GOOGLE SAGE (CSV)
     fetch(SAGE_CSV_URL)
     .then(response => response.text())
     .then(csvText => {
@@ -567,10 +570,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const colCodigo = headers.indexOf("Codigo Articulo");
         const colLote = headers.indexOf("IdLote");
 
-        if (colCodigo === -1 || colLote === -1) {
-            console.error("No se encontraron las columnas clave de SAGE.");
-            return;
-        }
+        if (colCodigo === -1 || colLote === -1) return;
 
         lotesTemporalesSAGE = {};
 
@@ -638,9 +638,9 @@ document.addEventListener("DOMContentLoaded", () => {
             let htmlUsReal = "";
             if (item.usaCarro) {
                 htmlUsReal = `
-                    <div class="input-group flex-nowrap" style="min-width: 250px;">
+                    <div class="input-group flex-nowrap">
                         <input type="text" inputmode="decimal" class="form-control form-control-lg input-teclado input-bruto" 
-                               placeholder="Brut" style="width: 80px;" readonly title="Pes Brut amb Carro">
+                               placeholder="Brut" style="max-width: 90px;" readonly title="Pes Brut amb Carro">
                         <select class="form-select text-secondary fw-bold select-tara" onchange="recalcularTara(this)">
                             <option value="0">Sense Tara</option>
                             <option value="23.5">Carro 23,5 kg</option>
