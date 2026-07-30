@@ -130,7 +130,7 @@
 
         <div class="col-12">
             <div class="card p-4">
-                <h3>2. Disponibilidad y Escalado</h3>
+                <h3>2. Disponibilitat i Escalat</h3>
                 
                 <div id="no-receta-msg" class="text-center text-muted mt-5">
                     Seleccione una receta para ver los detalles de stock.
@@ -147,7 +147,7 @@
                                     <th>Quantitat Base</th>
                                     <th>Unitat</th>
                                     <th class="text-center" style="width: 90px;">Escalat<br>Automàtic</th>
-                                    <th style="width: 220px;">Ús Real (Limitant)</th>
+                                    <th style="width: 260px;">Ús Real (Limitant)</th>
                                 </tr>
                             </thead>
                             <tbody id="tabla-ingredientes-body">
@@ -254,10 +254,10 @@ let lotesTemporalesSAGE = {};
 let currentInput = null;
 let currentLoteInput = null;
 
-// Se añade 'excluirTotal: true' a ingredientes como tripas (un) o líquidos (Litros) para que no alteren el peso final en kg
+// Se añade 'usaCarro: true' en los ingredientes principales que requieran selección de tara de carro
 const baseDatosIngredientes = {
     "77777": [
-        {cod: "2", nom: "CARN MAGRA PORC", base: "50", uni: "kg"},
+        {cod: "2", nom: "CARN MAGRA PORC", base: "50", uni: "kg", usaCarro: true},
         {cod: "17818", nom: "TIRA DE LLOM", base: "20", uni: "kg"},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7", uni: "kg"},
         {cod: "46466", nom: "PREP.LONG.FRESCA.NAT Nº20", base: "1,31", uni: "kg"},
@@ -276,19 +276,19 @@ const baseDatosIngredientes = {
         {cod: "47876", nom: "TRIPA DE XAI 22/24", base: "7", uni: "un", excluirTotal: true}
     ],
     "32": [
-        {cod: "2", nom: "ESPATLLA S/OS PORC", base: "50", uni: "kg"},
+        {cod: "2", nom: "ESPATLLA S/OS PORC", base: "50", uni: "kg", usaCarro: true},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "2,5", uni: "kg"},
         {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,88", uni: "kg"}
     ],
     "34": [
-        {cod: "10023", nom: "RETALL BACO 50/50", base: "30", uni: "kg"},
+        {cod: "10023", nom: "RETALL BACO 50/50", base: "30", uni: "kg", usaCarro: true},
         {cod: "17818", nom: "TIRA DE LLOM", base: "10", uni: "kg"},
         {cod: "47873", nom: "TRIPA CERDO 28/30", base: "3", uni: "un", excluirTotal: true},
         {cod: "16035", nom: "PREPARAT XORIÇ", base: "2,815", uni: "kg"},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "0,2", uni: "kg"}
     ],
     "36": [
-        {cod: "70014", nom: "PEIXET PAPADA VEDELL", base: "50", uni: "kg"},
+        {cod: "70014", nom: "PEIXET PAPADA VEDELL", base: "50", uni: "kg", usaCarro: true},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "5", uni: "kg"},
         {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,586", uni: "kg"}
     ],
@@ -343,7 +343,7 @@ const baseDatosIngredientes = {
         {cod: "45634", nom: "NOU MOSCADA 0.0005/kg", base: "0,01", uni: "kg"}
     ],
     "99958": [
-        {cod: "2", nom: "PERNIL FRESC SENSE OS", base: "16", uni: "kg"},
+        {cod: "2", nom: "PERNIL FRESC SENSE OS", base: "16", uni: "kg", usaCarro: true},
         {cod: "49", nom: "PANXETA PORC", base: "4", uni: "kg"},
         {cod: "47403", nom: "SAL FINA 14g/kg", base: "0,28", uni: "kg"},
         {cod: "2129", nom: "SUCRE BLANC 1 KG 4g/kg", base: "0,080", uni: "kg"},
@@ -401,7 +401,7 @@ const baseDatosIngredientes = {
         {cod: "46436", nom: "PEBRE BLANC MOLT FI", base: "0,04", uni: "kg"}
     ],
     "105": [
-        {cod: "10023", nom: "RETALL BACO 50/50", base: "30", uni: "kg"},
+        {cod: "10023", nom: "RETALL BACO 50/50", base: "30", uni: "kg", usaCarro: true},
         {cod: "17818", nom: "TIRA DE LLOM", base: "10", uni: "kg"},
         {cod: "16034", nom: "PREPARAT XISTORRA", base: "2,815", uni: "kg"},
         {cod: "47876", nom: "TRIPA XAI 22/24", base: "0,23", uni: "un", excluirTotal: true},
@@ -416,30 +416,30 @@ const baseDatosIngredientes = {
         {cod: "47873", nom: "TRIPA CERDO 28/30", base: "0,2", uni: "un", excluirTotal: true}
     ],
     "223": [
-        {cod: "70014", nom: "PEIXET PAPADA VEDELL", base: "50", uni: "kg"},
+        {cod: "70014", nom: "PEIXET PAPADA VEDELL", base: "50", uni: "kg", usaCarro: true},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"},
         {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,725", uni: "kg"},
         {cod: "16023", nom: "SALCO N 16 g/Kg", base: "1,599", uni: "kg"}
     ],
     "225": [
-        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg"},
+        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"},
         {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,725", uni: "kg"},
         {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,948", uni: "kg"}
     ],
     "226": [
-        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg"},
+        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "5", uni: "kg"},
         {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,485", uni: "kg"}
     ],
     "228": [
-        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg"},
+        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"},
         {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,725", uni: "kg"},
         {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,948", uni: "kg"}
     ],
     "229": [
-        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg"},
+        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"},
         {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,725", uni: "kg"},
         {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,948", uni: "kg"}
@@ -454,25 +454,25 @@ const baseDatosIngredientes = {
         {cod: "47876", nom: "TRIPA DE XAI 22/24", base: "7", uni: "un", excluirTotal: true}
     ],
     "88888": [
-        {cod: "301", nom: "PIT POLLASTRE", base: "12,5", uni: "kg"},
+        {cod: "301", nom: "PIT POLLASTRE", base: "12,5", uni: "kg", usaCarro: true},
         {cod: "10006", nom: "CARN POLLASTRE", base: "12,5", uni: "kg"},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "1,25", uni: "kg"},
         {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "0,79", uni: "kg"},
         {cod: "16076", nom: "FIBRA DE PESOL", base: "0,5", uni: "kg"}
     ],
     "10035": [
-        {cod: "69913", nom: "FILLET ANGUS", base: "20", uni: "kg"},
+        {cod: "69913", nom: "FILLET ANGUS", base: "20", uni: "kg", usaCarro: true},
         {cod: "70040", nom: "CARN DE VEDELLA", base: "20", uni: "kg"},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "4", uni: "kg"},
         {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,188", uni: "kg"}
     ],
     "10042": [
-        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg"},
+        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true},
         {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "5", uni: "kg"},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "1,5862", uni: "kg"}
     ],
     "20115": [
-        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg"},
+        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "5", uni: "kg"},
         {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,586", uni: "kg"}
     ],
@@ -500,7 +500,7 @@ const baseDatosIngredientes = {
         {cod: "40084", nom: "SAFATA 320.260.50", base: "11", uni: "un", excluirTotal: true}
     ],
     "930041": [
-        {cod: "10022", nom: "ESPATLLA PORC DUROC 8mm", base: "16", uni: "kg"},
+        {cod: "10022", nom: "ESPATLLA PORC DUROC 8mm", base: "16", uni: "kg", usaCarro: true},
         {cod: "49", nom: "PANXETA PORC", base: "4", uni: "kg"},
         {cod: "27001", nom: "AIGUA", base: "1", uni: "kg"},
         {cod: "46466", nom: "PREPARAT LONGANISSA FRESCA 5g/kg", base: "0,100", uni: "kg"},
@@ -508,7 +508,7 @@ const baseDatosIngredientes = {
         {cod: "46436", nom: "PEBRE BLANCA MOLT FI 3g/kg", base: "0,060", uni: "kg"}
     ],
     "69996": [
-        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg"},
+        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true},
         {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"},
         {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,725", uni: "kg"},
         {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,948", uni: "kg"}
@@ -635,6 +635,32 @@ document.addEventListener("DOMContentLoaded", () => {
                 fila.style.borderLeft = "4px solid #ffc107"; 
             }
 
+            let htmlUsReal = "";
+            if (item.usaCarro) {
+                htmlUsReal = `
+                    <div class="input-group flex-nowrap" style="min-width: 250px;">
+                        <input type="text" inputmode="decimal" class="form-control form-control-lg input-teclado input-bruto" 
+                               placeholder="Brut" style="width: 80px;" readonly title="Pes Brut amb Carro">
+                        <select class="form-select text-secondary fw-bold select-tara" onchange="recalcularTara(this)">
+                            <option value="0">Sense Tara</option>
+                            <option value="23.5">Carro 23,5 kg</option>
+                            <option value="24">Carro 24 kg</option>
+                            <option value="25">Carro 25 kg</option>
+                        </select>
+                        <input type="text" class="form-control form-control-lg num-input bg-light" 
+                               name="cantidad_${recetaId}_${index}" 
+                               placeholder="Net" value="${item.base}" readonly title="Pes Net Calculat">
+                    </div>
+                `;
+            } else {
+                htmlUsReal = `
+                    <input type="text" inputmode="decimal" class="form-control form-control-lg input-teclado num-input" 
+                           name="cantidad_${recetaId}_${index}" 
+                           placeholder="Ingrese cant." 
+                           value="${item.base}" readonly>
+                `;
+            }
+
             fila.innerHTML = `
                 <td class="item-codi">${item.cod}</td>
                 <td class="item-nombre">${item.nom}</td>
@@ -648,12 +674,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td class="text-center align-middle">
                     <input class="form-check-input scale-checkbox" type="checkbox" checked title="Incloure a l'escalat proporcional">
                 </td>
-                <td>
-                    <input type="text" inputmode="decimal" class="form-control form-control-lg num-input" 
-                           name="cantidad_${recetaId}_${index}" 
-                           placeholder="Ingrese cant." 
-                           value="${item.base}" readonly>
-                </td>
+                <td>${htmlUsReal}</td>
             `;
             tbody.appendChild(fila);
         });
@@ -665,7 +686,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function asignarEventosInputs() {
-        document.querySelectorAll(".num-input").forEach(input => {
+        document.querySelectorAll(".input-teclado").forEach(input => {
             input.addEventListener("click", (e) => {
                 e.stopPropagation(); 
                 ocultarTeclados();
@@ -683,16 +704,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (value === "OK") {
             ocultarTeclados();
+            return;
         } else if (value === "C") {
             currentInput.value = currentInput.value.slice(0, -1);
-            ejecutarRecalculoProporcional();
         } else {
-            if (value === "." || value === ",") {
-                if (currentInput.value.includes(".") || currentInput.value.includes(",")) return; 
-            }
+            if ((value === "." || value === ",") && (currentInput.value.includes(".") || currentInput.value.includes(","))) return; 
             currentInput.value += value;
-            ejecutarRecalculoProporcional();
         } 
+
+        const filaActual = currentInput.closest("tr");
+        if (currentInput.classList.contains('input-bruto')) {
+            actualizarNetoYEscalar(filaActual);
+        } else {
+            ejecutarRecalculoProporcional(filaActual);
+        }
     });
 
     alphapad.addEventListener("click", (e) => {
@@ -734,6 +759,28 @@ function gestionarCambioLote(elementoSelect) {
     }
 }
 
+function actualizarNetoYEscalar(fila) {
+    const inputBruto = fila.querySelector('.input-bruto');
+    const inputNeto = fila.querySelector('.num-input');
+    const selectTara = fila.querySelector('.select-tara');
+
+    if (inputBruto && selectTara && inputNeto) {
+        let bruto = parseFloat(inputBruto.value.replace(',', '.')) || 0;
+        let tara = parseFloat(selectTara.value) || 0;
+        let neto = Math.max(0, bruto - tara);
+        
+        if (inputBruto.value === "") neto = 0; 
+
+        inputNeto.value = Number(neto.toFixed(4)).toString().replace('.', ',');
+    }
+    ejecutarRecalculoProporcional(fila); 
+}
+
+window.recalcularTara = function(selectElem) {
+    const fila = selectElem.closest("tr");
+    actualizarNetoYEscalar(fila);
+};
+
 function ocultarTeclados() {
     document.getElementById("numeric-pad").classList.add("hidden");
     document.getElementById("alphanumeric-keyboard").classList.add("hidden");
@@ -770,9 +817,9 @@ function calcularSumaTotales() {
     document.getElementById("total-real-campo").innerText = Number(sumaReal.toFixed(3)).toString().replace('.', ',');
 }
 
-function ejecutarRecalculoProporcional() {
-    if (!currentInput) return;
-    const filaActual = currentInput.closest("tr");
+function ejecutarRecalculoProporcional(filaFoco = null) {
+    const filaActual = filaFoco || (currentInput ? currentInput.closest("tr") : null);
+    if (!filaActual) return;
     
     const checkboxActual = filaActual.querySelector(".scale-checkbox");
     if (checkboxActual && !checkboxActual.checked) {
@@ -780,7 +827,10 @@ function ejecutarRecalculoProporcional() {
         return; 
     }
 
-    const valorIntroducido = parseFloat(currentInput.value.replace(',', '.')) || 0;
+    const inputNeto = filaActual.querySelector(".num-input");
+    if (!inputNeto) return;
+
+    const valorIntroducido = parseFloat(inputNeto.value.replace(',', '.')) || 0;
     const baseActual = parseFloat(filaActual.querySelector(".cantidad-base-valor").getAttribute("data-base"));
 
     if (baseActual === 0 || valorIntroducido === 0) return;
@@ -798,7 +848,15 @@ function ejecutarRecalculoProporcional() {
         const baseFila = parseFloat(fila.querySelector(".cantidad-base-valor").getAttribute("data-base"));
         const inputFila = fila.querySelector(".num-input");
         const nuevaCantidad = baseFila * factorEscala;
+        
         inputFila.value = Number(nuevaCantidad.toFixed(4)).toString().replace('.', ',');
+
+        const inputBrutoEscalado = fila.querySelector('.input-bruto');
+        const selectTaraEscalada = fila.querySelector('.select-tara');
+        if(inputBrutoEscalado && selectTaraEscalada && inputFila.value !== "") {
+           let tara = parseFloat(selectTaraEscalada.value) || 0;
+           inputBrutoEscalado.value = Number((nuevaCantidad + tara).toFixed(4)).toString().replace('.', ',');
+        }
     });
     
     calcularSumaTotales();
