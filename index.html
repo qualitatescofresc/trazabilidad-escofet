@@ -171,16 +171,29 @@
                     </div>
                 </div>
 
-                <!-- SELECTOR DE DÍAS (Oculto por defecto) -->
-                <div id="selector-dias-container" class="d-none mb-3 w-50 mx-auto">
-                    <select class="form-select text-center fw-bold" id="select-dias-historic" onchange="renderEstadisticas()">
-                        <option value="2">Últims 2 dies</option>
-                        <option value="3">Últims 3 dies</option>
-                        <option value="4">Últims 4 dies</option>
-                        <option value="5">Últims 5 dies</option>
-                        <option value="6">Últims 6 dies</option>
-                        <option value="7">Últims 7 dies</option>
-                    </select>
+                <!-- FILTROS DINÁMICOS (Ocultos por defecto, visibles en Per Recepta e Històric Dies) -->
+                <div id="selector-dias-container" class="d-none mb-3 w-75 mx-auto">
+                    <div class="row g-3 justify-content-center align-items-center">
+                        <div class="col-md-6">
+                            <label for="select-dias-historic" class="form-label fw-bold text-muted small mb-1">Filtre per Rang d'Últims Dies:</label>
+                            <select class="form-select text-center fw-bold" id="select-dias-historic" onchange="renderEstadisticas()">
+                                <option value="">-- Tots / Sense filtre de dies --</option>
+                                <option value="2">Últims 2 dies</option>
+                                <option value="3">Últims 3 dies</option>
+                                <option value="4">Últims 4 dies</option>
+                                <option value="5">Últims 5 dies</option>
+                                <option value="6">Últims 6 dies</option>
+                                <option value="7">Últims 7 dies</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-calendario-historico" class="form-label fw-bold text-muted small mb-1">O triar una Data Concreta (Calendari):</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control text-center fw-bold" id="input-calendario-historico" onchange="renderEstadisticas()">
+                                <button class="btn btn-outline-secondary" type="button" onclick="limpiarCalendario()" title="Netejar data">✖</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="display-3 fw-bold text-success my-3" id="total-sum-kg">Carregant...</div>
@@ -256,12 +269,11 @@
 </div>
 
 <script>
-// ¡Asegúrate de reemplazar esta URL por la nueva que te asigne Google Script al re-desplegar!
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwJD6eOGE_v6y0au7su3lWe6oWTL3QRHRZN8d9GOpLf147ImR6QN5oykY5epCKG7fvwLA/exec";
 const SAGE_CSV_URL = "https://docs.google.com/spreadsheets/d/1svOd-IdYqybrTdijHOqvG5dOdJEOk-QHtRZTHcdTvZ4/gviz/tq?tqx=out:csv&sheet=Hoja%201";
 
 let lotesTemporalesSAGE = {};
-let estadisticasGlobales = []; // Array central que almacenará los datos bajados de Sheets
+let estadisticasGlobales = []; 
 let currentInput = null;
 let currentLoteInput = null;
 let modoEstadisticas = 'avui';
@@ -318,16 +330,30 @@ function cambiarSeccion(seccion) {
 
 function cambiarSubSeccion(modo) {
     modoEstadisticas = modo;
-    const selectorDias = document.getElementById('selector-dias-container');
+    const selectorDiasContainer = document.getElementById('selector-dias-container');
     const tituloSuma = document.getElementById('titulo-suma-estadisticas');
     
-    if (modo === 'historic') {
-        selectorDias.classList.remove('d-none');
-        tituloSuma.innerText = "Suma Total Històric";
+    // Mostrar filtros tanto en 'recepta' como en 'historic'
+    if (modo === 'recepta' || modo === 'historic') {
+        selectorDiasContainer.classList.remove('d-none');
     } else {
-        selectorDias.classList.add('d-none');
-        tituloSuma.innerText = modo === 'avui' ? "Suma Total Avui" : "Suma Total Per Recepta";
+        selectorDiasContainer.classList.add('d-none');
+        limpiarCalendario();
+        document.getElementById('select-dias-historic').value = "";
     }
+
+    if (modo === 'historic') {
+        tituloSuma.innerText = "Suma Total Històric";
+    } else if (modo === 'recepta') {
+        tituloSuma.innerText = "Suma Total Per Recepta";
+    } else {
+        tituloSuma.innerText = "Suma Total Avui";
+    }
+    renderEstadisticas();
+}
+
+function limpiarCalendario() {
+    document.getElementById('input-calendario-historico').value = "";
     renderEstadisticas();
 }
 
@@ -347,7 +373,7 @@ function cargarEstadisticasDesdeSheets() {
     .catch(error => console.error("Error al cargar estadísticas:", error));
 }
 
-// 2. RENDERIZADO CON LA VARIABLE GLOBAL
+// 2. RENDERIZADO CON LA VARIABLE GLOBAL Y FILTROS APLICADOS
 function renderEstadisticas() {
     const tbody = document.getElementById('tabla-estadisticas-body');
     const thead = document.getElementById('tabla-estadisticas-head');
@@ -357,7 +383,33 @@ function renderEstadisticas() {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0); 
     
-    let datosArray = estadisticasGlobales;
+    let datosArray = [...estadisticasGlobales];
+
+    // Obtener valores de los filtros de días y calendario
+    const valDias = document.getElementById('select-dias-historic').value;
+    const valFechaInput = document.getElementById('input-calendario-historico').value;
+
+    // Filtrar previamente por Fecha de Calendario si se ha seleccionado alguna
+    if (valFechaInput) {
+        const fechaSeleccionada = new Date(valFechaInput);
+        fechaSeleccionada.setHours(0, 0, 0, 0);
+        datosArray = datosArray.filter(data => {
+            const fItem = new Date(data.timestamp);
+            fItem.setHours(0, 0, 0, 0);
+            return fItem.getTime() === fechaSeleccionada.getTime();
+        });
+    }
+
+    // Filtrar por Rango de Últimos Dies si está activo
+    if (valDias) {
+        const dias = parseInt(valDias, 10);
+        const fechaLimite = new Date(hoy);
+        fechaLimite.setDate(fechaLimite.getDate() - dias + 1);
+        datosArray = datosArray.filter(data => {
+            const fItem = new Date(data.timestamp);
+            return fItem >= fechaLimite;
+        });
+    }
 
     if (modoEstadisticas === 'avui') {
         thead.innerHTML = `<tr><th>Data i Hora</th><th>Recepta</th><th>Kilos Processats</th></tr>`;
@@ -384,19 +436,11 @@ function renderEstadisticas() {
     } 
     else if (modoEstadisticas === 'historic') {
         thead.innerHTML = `<tr><th>Data i Hora</th><th>Recepta</th><th>Kilos Processats</th></tr>`;
-        const dias = parseInt(document.getElementById('select-dias-historic').value, 10);
-        
-        const fechaLimite = new Date(hoy);
-        fechaLimite.setDate(fechaLimite.getDate() - dias + 1); 
-        
         datosArray.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         
         datosArray.forEach(data => {
-            const fechaItem = new Date(data.timestamp);
-            if (fechaItem >= fechaLimite) {
-                sumaKilos += data.totalKg;
-                tbody.innerHTML += `<tr><td>${data.fechaFormato}</td><td>${data.receta}</td><td class="fw-bold text-success">${Number(data.totalKg.toFixed(3)).toString().replace('.', ',')} kg</td></tr>`;
-            }
+            sumaKilos += data.totalKg;
+            tbody.innerHTML += `<tr><td>${data.fechaFormato}</td><td>${data.receta}</td><td class="fw-bold text-success">${Number(data.totalKg.toFixed(3)).toString().replace('.', ',')} kg</td></tr>`;
         });
     }
     
@@ -404,7 +448,6 @@ function renderEstadisticas() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    // LLAMAMOS AL SCRIPT PARA PRECARGAR LAS ESTADÍSTICAS
     cargarEstadisticasDesdeSheets();
 
     const selectReceta = document.getElementById("receta");
