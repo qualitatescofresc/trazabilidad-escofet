@@ -155,7 +155,7 @@
     <div id="seccion-estadisticas" class="row d-none">
         <div class="col-12">
             <div class="card p-4 text-center border-danger">
-                <h3>Resum de Producció</h3>
+                <h3>Resum de Producció (Sincronitzat amb Sheets)</h3>
                 
                 <!-- SUB-SEGMENTADORES ESTADÍSTICAS -->
                 <div class="d-flex justify-content-center my-4">
@@ -183,7 +183,7 @@
                     </select>
                 </div>
                 
-                <div class="display-3 fw-bold text-success my-3" id="total-sum-kg">0,000 kg</div>
+                <div class="display-3 fw-bold text-success my-3" id="total-sum-kg">Carregant...</div>
                 <h5 id="titulo-suma-estadisticas">Suma Total Avui</h5>
 
                 <div class="table-responsive mt-4">
@@ -198,10 +198,6 @@
                         <tbody id="tabla-estadisticas-body">
                         </tbody>
                     </table>
-                </div>
-                
-                <div class="text-end mt-3">
-                    <button class="btn btn-outline-danger" onclick="limpiarEstadisticas()">Netejar Estadístiques Globals</button>
                 </div>
             </div>
         </div>
@@ -260,10 +256,12 @@
 </div>
 
 <script>
+// ¡Asegúrate de reemplazar esta URL por la nueva que te asigne Google Script al re-desplegar!
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyuHVCLFAutjMo2qdiQzDKuewempmC1rW-Hsoyo6DRGaRhCP2MdZZQIpHwmTFBQqyu-sQ/exec";
 const SAGE_CSV_URL = "https://docs.google.com/spreadsheets/d/1svOd-IdYqybrTdijHOqvG5dOdJEOk-QHtRZTHcdTvZ4/gviz/tq?tqx=out:csv&sheet=Hoja%201";
 
 let lotesTemporalesSAGE = {};
+let estadisticasGlobales = []; // Array central que almacenará los datos bajados de Sheets
 let currentInput = null;
 let currentLoteInput = null;
 let modoEstadisticas = 'avui';
@@ -333,24 +331,24 @@ function cambiarSubSeccion(modo) {
     renderEstadisticas();
 }
 
-function guardarEnEstadisticas(recetaId, recetaNombre, kilosTotal) {
-    const ahora = new Date();
-    const pk = `${recetaId}-${ahora.toISOString()}`; 
-    let estadisticas = JSON.parse(localStorage.getItem('estadisticasBatch') || '{}');
-    
-    if (!estadisticas[pk]) {
-        estadisticas[pk] = {
-            fechaFormato: ahora.toLocaleString('es-ES'),
-            timestamp: ahora.getTime(), // Facilitará el filtrado de fechas
-            receta: recetaNombre,
-            totalKg: parseFloat(kilosTotal.replace(',', '.')) || 0
-        };
-        localStorage.setItem('estadisticasBatch', JSON.stringify(estadisticas));
-    }
+// 1. CARGA DE DATOS DESDE GOOGLE SHEETS
+function cargarEstadisticasDesdeSheets() {
+    document.getElementById('total-sum-kg').innerText = "Carregant...";
+    fetch(WEB_APP_URL + "?action=getEstadisticas")
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === "success") {
+            estadisticasGlobales = data.datos;
+            if(!document.getElementById('seccion-estadisticas').classList.contains('d-none')) {
+                renderEstadisticas();
+            }
+        }
+    })
+    .catch(error => console.error("Error al cargar estadísticas:", error));
 }
 
+// 2. RENDERIZADO CON LA VARIABLE GLOBAL
 function renderEstadisticas() {
-    const estadisticas = JSON.parse(localStorage.getItem('estadisticasBatch') || '{}');
     const tbody = document.getElementById('tabla-estadisticas-body');
     const thead = document.getElementById('tabla-estadisticas-head');
     tbody.innerHTML = '';
@@ -359,12 +357,12 @@ function renderEstadisticas() {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0); 
     
-    let datosArray = Object.values(estadisticas);
+    let datosArray = estadisticasGlobales;
 
     if (modoEstadisticas === 'avui') {
         thead.innerHTML = `<tr><th>Data i Hora</th><th>Recepta</th><th>Kilos Processats</th></tr>`;
         datosArray.forEach(data => {
-            const fechaItem = new Date(data.timestamp || data.fechaFormato); 
+            const fechaItem = new Date(data.timestamp); 
             if (fechaItem >= hoy) {
                 sumaKilos += data.totalKg;
                 tbody.innerHTML += `<tr><td>${data.fechaFormato}</td><td>${data.receta}</td><td class="fw-bold text-success">${Number(data.totalKg.toFixed(3)).toString().replace('.', ',')} kg</td></tr>`;
@@ -394,7 +392,7 @@ function renderEstadisticas() {
         datosArray.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         
         datosArray.forEach(data => {
-            const fechaItem = new Date(data.timestamp || data.fechaFormato);
+            const fechaItem = new Date(data.timestamp);
             if (fechaItem >= fechaLimite) {
                 sumaKilos += data.totalKg;
                 tbody.innerHTML += `<tr><td>${data.fechaFormato}</td><td>${data.receta}</td><td class="fw-bold text-success">${Number(data.totalKg.toFixed(3)).toString().replace('.', ',')} kg</td></tr>`;
@@ -405,15 +403,10 @@ function renderEstadisticas() {
     document.getElementById('total-sum-kg').innerText = Number(sumaKilos.toFixed(3)).toString().replace('.', ',') + ' kg';
 }
 
-function limpiarEstadisticas() {
-    if (confirm('Estàs segur que vols netejar TOTES les estadístiques emmagatzemades al dispositiu?')) {
-        localStorage.removeItem('estadisticasBatch');
-        renderEstadisticas();
-    }
-}
-
-// --- LÓGICA PRINCIPAL DE LA APP ---
 document.addEventListener("DOMContentLoaded", () => {
+    // LLAMAMOS AL SCRIPT PARA PRECARGAR LAS ESTADÍSTICAS
+    cargarEstadisticasDesdeSheets();
+
     const selectReceta = document.getElementById("receta");
     const noRecetaMsg = document.getElementById("no-receta-msg");
     const tablaContenedor = document.getElementById("tabla-contenedor");
@@ -683,12 +676,11 @@ function enviarAGoogleSheets(event) {
 
     fetch(WEB_APP_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(payload) })
     .then(response => {
-        guardarEnEstadisticas(selectReceta.value, selectReceta.options[selectReceta.selectedIndex].text, totalBatchCalculado);
-        alert("¡Batch guardado correctamente!"); window.location.reload(); 
+        alert("¡Batch guardado correctamente!"); 
+        window.location.reload(); 
     })
     .catch(error => { alert("Error de conexión al guardar: " + error); btnGuardar.disabled = false; btnGuardar.innerText = "Confirmar i Desar Batch"; });
 }
 </script>
-
 </body>
 </html>
