@@ -113,7 +113,19 @@
         <span class="display-4 fw-bold text-danger">PREPARATS CARNICS ESCO FRESC S.L.U. - Sistema de Traçabilitat</span>
     </header>
 
-    <div class="row g-4">
+    <!-- SEGMENTADORES (TABS) -->
+    <div class="d-flex justify-content-center mb-4">
+        <div class="btn-group shadow-sm" role="group" aria-label="Segmentadores de sección">
+            <input type="radio" class="btn-check" name="seccionRadio" id="btn-produccion" autocomplete="off" checked onchange="cambiarSeccion('produccion')">
+            <label class="btn btn-outline-danger btn-lg px-5 fw-bold" for="btn-produccion">PRODUCCIÓ</label>
+
+            <input type="radio" class="btn-check" name="seccionRadio" id="btn-estadisticas" autocomplete="off" onchange="cambiarSeccion('estadisticas')">
+            <label class="btn btn-outline-danger btn-lg px-5 fw-bold" for="btn-estadisticas">ESTADÍSTIQUES</label>
+        </div>
+    </div>
+
+    <!-- SECCIÓN PRODUCCIÓN -->
+    <div id="seccion-produccion" class="row g-4">
         <div class="col-12">
             <div class="card p-4">
                 <h3>1. Selecció</h3>
@@ -201,6 +213,38 @@
             </div>
         </div>
     </div> 
+
+    <!-- SECCIÓN ESTADÍSTICAS -->
+    <div id="seccion-estadisticas" class="row d-none">
+        <div class="col-12">
+            <div class="card p-4 text-center border-danger">
+                <h3>Resum de Producció</h3>
+                <p class="text-muted">Total acumulat dels batch guardats correctament.</p>
+                
+                <div class="display-3 fw-bold text-success my-4" id="total-sum-kg">0,000 kg</div>
+                <h5>Suma Total Batch</h5>
+
+                <div class="table-responsive mt-4">
+                    <table class="table table-striped table-hover text-start align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Data i Hora</th>
+                                <th>Recepta</th>
+                                <th>Kilos Processats</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-estadisticas-body">
+                            <!-- Filas dinámicas de localStorage -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="text-end mt-3">
+                    <button class="btn btn-outline-danger" onclick="limpiarEstadisticas()">Netejar Estadístiques</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div id="numeric-pad" class="numpad-container hidden">
@@ -281,291 +325,105 @@ let currentInput = null;
 let currentLoteInput = null;
 
 const baseDatosIngredientes = {
-    "77777": [
-        {cod: "2", nom: "CARN MAGRA PORC", base: "50", uni: "kg", usaCarro: true},
-        {cod: "17818", nom: "TIRA DE LLOM", base: "20", uni: "kg"},
-        {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7", uni: "kg"},
-        {cod: "46466", nom: "PREP.LONG.FRESCA.NAT Nº20", base: "1,31", uni: "kg"},
-        {cod: "47403", nom: "SAL FINA", base: "1", uni: "kg"},
-        {cod: "46436", nom: "PEBRE BLANC MOLT FI", base: "0,19", uni: "kg"}
-    ],
-    "99999": [
-        {cod: "10023", nom: "RETALL BACO 50/50", base: "30", uni: "kg", usaCarro: true},
-        {cod: "17818", nom: "TIRA DE LLOM", base: "10", uni: "kg"},
-        {cod: "27001", nom: "AIGUA OSMÒTICA", base: "2,000", uni: "kg"},
-        {cod: "16034", nom: "PREPARAT XISTORRA", base: "3,080", uni: "kg"}
-        
-    ],
-    "30": [
-        {cod: "40084", nom: "SAFATA 320.260.50", base: "20", uni: "un", excluirTotal: true},
-        {cod: "77777", nom: "CRUDO PER BUTIFFARRA SALTXITXAS", base: "30", uni: "kg"},
-        {cod: "47873", nom: "TRIPA DE PORC 28/30", base: "7", uni: "un", excluirTotal: true}
-    ],
-    "31": [
-        {cod: "40084", nom: "SAFATA 320.260.50", base: "20", uni: "un", excluirTotal: true},        
-        {cod: "77777", nom: "CRUDO PER BUTIFFARRA SALTXITXAS", base: "34", uni: "kg"},
-        {cod: "47876", nom: "TRIPA DE XAI 22/24", base: "7", uni: "un", excluirTotal: true}
-    ],
-    "32": [
-        {cod: "2", nom: "ESPATLLA S/OS PORC", base: "50", uni: "kg", usaCarro: true},
-        {cod: "27001", nom: "AIGUA OSMÒTICA", base: "2,5", uni: "kg"},
-        {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,84", uni: "kg"}
-    ],
-    "34": [
-        {cod: "99999", nom: "CRUDO XORIÇO / XISTORRA", base: "30", uni: "kg"},
-        {cod: "47873", nom: "TRIPA CERDO 28/30", base: "3", uni: "un", excluirTotal: true},
-    ],
-    "36": [
-        {cod: "242", nom: "FILET POBRE VACA", base: "40", uni: "kg", usaCarro: true},
-        {cod: "70040", nom: "GREIX DE VEDELLA", base: "10", uni: "kg"},
-        {cod: "27001", nom: "AIGUA OSMÒTICA", base: "5", uni: "kg"},
-        {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,586", uni: "kg"}
-    ],
-    "37": [
-        {cod: "40084", nom: "SAFATA 320.260.50", base: "20", uni: "un", excluirTotal: true},
-        {cod: "77777", nom: "CRUDO PER BUTIFFARRA SALTXITXAS", base: "30", uni: "kg"},
-        {cod: "47873", nom: "TRIPA DE PORC 28/30", base: "7", uni: "un", excluirTotal: true},
-        {cod: "47065", nom: "ROVELLO TROSSOS 3 KG", base: "1,62", uni: "kg"}
-    ],
-    "54": [
-        {cod: "30002", nom: "PRODUCTE CUIT INTERMIG", base: "1,300", uni: "kg"},
-        {cod: "", nom: "", base: "", uni: ""},
-        {cod: "11", nom: "LLENGUES PORC", base: "0,2656", uni: "kg", excluirTotal: true},
-        {cod: "6482", nom: "PULMONS PORC", base: "0,4762", uni: "kg", excluirTotal: true},
-        {cod: "10860", nom: "CORS PORC", base: "0,5577", uni: "kg", excluirTotal: true},
-        {cod: "", nom: "", base: "", uni: ""},
-        {cod: "2", nom: "CARN MAGRA PORC", base: "18,7", uni: "kg"},
-        {cod: "48", nom: "PAPADA PORC SENSE PELL", base: "10", uni: "kg"},
-        {cod: "16076", nom: "CALDO", base: "0", uni: "kg"},
-        {cod: "47403", nom: "SAL FINA", base: "0,480", uni: "kg"},
-        {cod: "46436", nom: "PEBRE BLANC MOLT FI  [3 g/kg]", base: "0,090", uni: "kg"},
-        {cod: "16075", nom: "EXTRACTE ESPECIES   [2 g/kg]", base: "0,060", uni: "kg"},
-        {cod: "16090", nom: "MICROBION", base: "0,300", uni: "kg"},
-        {cod: "47873", nom: "TRIPA CERDO 28/30", base: "3", uni: "un", excluirTotal: true}
-    ],
-    "56": [
-        {cod: "30002", nom: "CARNS CUIDES A CUINA", base: "27,400", uni: "kg"},
-        {cod: "", nom: "", base: "", uni: ""},
-        {cod: "15", nom: "PAPADA A/PELL PORC", base: "8,000", uni: "kg", excluirTotal: true},
-        {cod: "10861", nom: "COTNA PORC", base: "4,179", uni: "kg", excluirTotal: true},
-        {cod: "40", nom: "MORRO PORC", base: "5,000", uni: "kg", excluirTotal: true},
-        {cod: "7020", nom: "RETALL CAP PORC", base: "3,400", uni: "kg", excluirTotal: true},
-        {cod: "6482", nom: "PULMONS PORC", base: "4,480", uni: "kg", excluirTotal: true},
-        {cod: "10860", nom: "CORS PORC", base: "3,060", uni: "kg", excluirTotal: true},
-        {cod: "", nom: "", base: "", uni: ""},
-        {cod: "7400", nom: "SANG PORC", base: "6", uni: "Litros"},
-        {cod: "2671", nom: "GREIX PORC per negra", base: "5,400", uni: "kg"},
-        {cod: "47403", nom: "SAL FINA", base: "0,620", uni: "kg"},
-        {cod: "46429", nom: "PEBRE NEGRE MOLT FI", base: "0,115", uni: "kg"},
-        {cod: "16090", nom: "MICROBION", base: "0,388", uni: "kg", excluirTotal: false},
-        {cod: "47878", nom: "TRIPA CERDO 36/38", base: "4", uni: "un", excluirTotal: true},
-        {cod: "40079", nom: "BOLSA VACIO 150X210 RET", base: "137", uni: "un", excluirTotal: true},
-    ],
-    "58": [
-        {cod: "99958", nom: "CRUDO BOTIFARRA CATALANA", base: "16", uni: "kg"},
-        {cod: "49", nom: "PANXETA PORC", base: "4", uni: "kg"},
-        {cod: "47403", nom: "SAL FINA 14g/kg", base: "0,28", uni: "kg"},
-        {cod: "50071", nom: "PICADILLO TOFONA", base: "0,2", uni: "kg"},
-        {cod: "15034", nom: "VINO COCINA JIN FAN 500 ML", base: "0,2", uni: "kg"},
-        {cod: "2129", nom: "SUCRE BLANC 1 KG 4g/kg", base: "0,08", uni: "kg"},
-        {cod: "46436", nom: "PEBRE BLANC MOLT FI 2g/kg", base: "0,04", uni: "kg"},
-        {cod: "45633", nom: "SAL NITRIFICANT 2g/kg", base: "0,04", uni: "kg"},
-        {cod: "40074", nom: "ACID ASCORBIC", base: "0,01", uni: "kg"},
-        {cod: "45634", nom: "NOU MOSCADA 0.0005/kg", base: "0,01", uni: "kg"}
-    ],
-    "99958": [
-        {cod: "2", nom: "PERNIL FRESC SENSE OS", base: "16", uni: "kg", usaCarro: true},
-        {cod: "49", nom: "PANXETA PORC", base: "4", uni: "kg"},
-        {cod: "47403", nom: "SAL FINA 14g/kg", base: "0,28", uni: "kg"},
-        {cod: "2129", nom: "SUCRE BLANC 1 KG 4g/kg", base: "0,080", uni: "kg"},
-        {cod: "27001", nom: "AIGUA", base: "0,400", uni: "kg"},
-        {cod: "45633", nom: "SAL NITRIFICANT 2g/kg", base: "0,040", uni: "kg"},
-        {cod: "15034", nom: "VINO COCINA JIN FAN 500 ML", base: "0,2", uni: "kg"},
-        {cod: "46436", nom: "PEBRE BLANC MOLT FI 2g/kg", base: "0,04", uni: "kg"},
-        {cod: "40074", nom: "ACID ASCORBIC", base: "0,01", uni: "kg"},
-        {cod: "45634", nom: "NOU MOSCADA 0.0005/kg", base: "0,01", uni: "kg"}
-    ],
-    "70": [
-        {cod: "99970", nom: "CRUDO PER CAP SENGLAR JABALI", base: "13,800", uni: "kg"},
-        {cod: "2", nom: "CARN MAGRA PORC", base: "3,2", uni: "kg", excluirTotal: false},
-        {cod: "45633", nom: "SAL NITRIFICANT", base: "0,005", uni: "kg", excluirTotal: false},
-        {cod: "47403", nom: "SAL FINA", base: "0,050", uni: "kg", excluirTotal: false},
-        {cod: "2129", nom: "SUCRE BLANC", base: "0,015", uni: "kg", excluirTotal: false},
-        {cod: "46436", nom: "PEBRE BLANC MOLT FI", base: "0,050", uni: "kg", excluirTotal: false},
-        {cod: "15034", nom: "VINO COCINA JIN FAN", base: "0,200", uni: "kg", excluirTotal: false},
-        {cod: "45634", nom: "NOU MOSCADA", base: "0,005", uni: "kg", excluirTotal: false},
-        {cod: "16090", nom: "MICROBION", base: "0,200", uni: "kg", excluirTotal: false},
-        {cod: "40074", nom: "ASCORBATO SÓDICO", base: "0,010", uni: "kg", excluirTotal: false},
-        {cod: "50", nom: "ALBARDES PORC", base: "3,400", uni: "kg", excluirTotal: false},
-    ],
-    "82": [
-        {cod: "16", nom: "MANS PORC", base: "19,000", uni: "kg"},
-        {cod: "27001", nom: "AIGUA", base: "15,000", uni: "kg"},
-        {cod: "47403", nom: "SAL FINA", base: "1,500", uni: "kg"},
-        {cod: "16090", nom: "MICROBION", base: "0,350", uni: "kg"},
-    ],
-    "99970": [
-        {cod: "11", nom: "LLENGUES PORC", base: "8,400", uni: "kg"},
-        {cod: "40", nom: "MORRO PORC", base: "8,400", uni: "kg"},
-        {cod: "27001", nom: "AIGUA", base: "12", uni: "kg"},
-        {cod: "47403", nom: "SAL FINA", base: "0,480", uni: "kg"},
-        {cod: "45633", nom: "SAL NITRIFICANT", base: "0,120", uni: "kg"},
-        {cod: "2129", nom: "SUCRE BLANC", base: "0,080", uni: "kg"} 
-    ],
-    "94": [
-        {cod: "30002", nom: "PRODUCTE CUIT INTERMIG", base: "24", uni: "kg"},
-        {cod: "", nom: "", base: "", uni: ""},
-        {cod: "7020", nom: "RETALL CAP PORC", base: "4,56", uni: "kg", excluirTotal: true},
-        {cod: "10860", nom: "CORS PORC", base: "3,38", uni: "kg", excluirTotal: true},
-        {cod: "6482", nom: "PULMONS PORC", base: "5,94", uni: "kg", excluirTotal: true},
-        {cod: "18434", nom: "VENTRE PORC", base: "3,36", uni: "kg", excluirTotal: true},
-        {cod: "11", nom: "LLENGUES PORC", base: "2,56", uni: "kg", excluirTotal: true},
-        {cod: "40", nom: "MORRO PORC", base: "10", uni: "kg", excluirTotal: true},
-        {cod: "", nom: "", base: "", uni: ""},
-        {cod: "15", nom: "PAPADA A/PELL PORC [limpia]", base: "4,5", uni: "kg"},      
-        {cod: "47403", nom: "SAL FINA 16  g/kg", base: "0,456", uni: "kg"},
-        {cod: "46429", nom: "PEBRE NEGRE 3,5 g/kg", base: "0,100", uni: "kg"},
-        {cod: "16090", nom: "MICROBION", base: "0,285", uni: "kg"},
-        {cod: "47878", nom: "TRIPA CERDO 36/38", base: "4,5", uni: "un", excluirTotal: true},
-    ],
-    "95": [
-        {cod: "2", nom: "ESPATLLA S/OS PORC", base: "7,7", uni: "kg"},
-        {cod: "43067", nom: "OU LIQUIT PASTEURITZAT", base: "7", uni: "Litros"},
-        {cod: "48", nom: "PAPADA PORC S/PELL", base: "4,3", uni: "kg"},
-        {cod: "47873", nom: "TRIPA CERDO 28/30", base: "3", uni: "un", excluirTotal: true},
-        {cod: "379", nom: "ROVELL OU", base: "1", uni: "Litros"},
-        {cod: "47403", nom: "SAL FINA", base: "0,3", uni: "kg"},
-        {cod: "16075", nom: "EXTRACTE ESPECIES   [2 g/kg]", base: "0,04", uni: "kg"},
-        {cod: "46436", nom: "PEBRE BLANC MOLT FI", base: "0,04", uni: "kg"},
-        {cod: "16090", nom: "MICROBION", base: "0,200", uni: "kg"}
-    ],
-    "105": [
-        {cod: "99999", nom: "CRUDO XORIÇO / XISTORRA", base: "30", uni: "kg"},
-        {cod: "47876", nom: "TRIPA XAI 22/24", base: "0,23", uni: "un", excluirTotal: true}
-    ],
-    "197": [
-        {cod: "70040", nom: "CARN VEDELLA", base: "7,5", uni: "kg"},
-        {cod: "10023", nom: "RETALL BACO 50/50", base: "7,5", uni: "kg"},
-        {cod: "27001", nom: "AIGUA OSMÒTICA", base: "0,750", uni: "kg"},
-        {cod: "46472", nom: "PREP. CRIOLLO", base: "0,788", uni: "kg"},
-        {cod: "47873", nom: "TRIPA CERDO 28/30", base: "3", uni: "un", excluirTotal: true},
-        {cod: "40486", nom: "BOLSA VACIO 250X350", base: "9", uni: "kg", excluirTotal: true},
-    ],
-    "223": [
-        {cod: "70014", nom: "PEIXET PAPADA VEDELL", base: "50", uni: "kg", usaCarro: true},
-        {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"},
-        {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,725", uni: "kg"},
-        {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,944", uni: "kg"}
-    ],
-    "225": [
-        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true},
-        {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"},
-        {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,5", uni: "kg"},
-        {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,944", uni: "kg"}
-    ],
-    "226": [
-        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true},
-        {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"},
-        {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,500", uni: "kg"},
-        {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,593", uni: "kg"}
-        
-    ],
-    "228": [
-        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true},
-        {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"},
-        {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,5", uni: "kg"},
-        {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,944", uni: "kg"}
-    ],
-    "229": [
-        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true},
-        {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"},
-        {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,5", uni: "kg"},
-        {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,944", uni: "kg"}
-    ],
-    "303": [
-        {cod: "40084", nom: "SAFATA 320.260.50", base: "10", uni: "un", excluirTotal: true},        
-        {cod: "88888", nom: "CRUDO PER BUTIFFARRA SALTXITXAS", base: "15", uni: "kg"}
-    ],
-    "317": [
-        {cod: "40084", nom: "SAFATA POREX 17.5X25X4", base: "10", uni: "un", excluirTotal: true},        
-        {cod: "88888", nom: "CRUDO PER BUTIFFARRA SALTXITXAS", base: "12", uni: "kg"},
-        {cod: "47876", nom: "TRIPA DE XAI 22/24", base: "7", uni: "un", excluirTotal: true}
-    ],
-    "2031": [
-        {cod: "242", nom: "FILET POBRE VACA", base: "25", uni: "kg", usaCarro: true},
-        {cod: "225", nom: "COSTELLA VEDELLA SENSE OS", base: "25", uni: "kg"},
-        {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"},
-        {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,500", uni: "kg"},
-        {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,593", uni: "kg"}
-        
-    ],
-    "88888": [
-        {cod: "301", nom: "PIT POLLASTRE", base: "12,5", uni: "kg", usaCarro: true},
-        {cod: "10006", nom: "CARN POLLASTRE", base: "12,5", uni: "kg"},
-        {cod: "27001", nom: "AIGUA OSMÒTICA", base: "3,75", uni: "kg"},
-        {cod: "16076", nom: "FIBRA DE PESOL", base: "0,862", uni: "kg"},
-        {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "0,800", uni: "kg"}
-        
-    ],
-    "10035": [
-        {cod: "69913", nom: "FILLET ANGUS", base: "25", uni: "kg", usaCarro: true},
-        {cod: "70040", nom: "CARN DE VEDELLA", base: "25", uni: "kg"},
-        {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"},
-        {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,5", uni: "kg"},
-        {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,188", uni: "kg"}
-    ],
-    "10042": [
-        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true},
-        {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"},
-        {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,5", uni: "kg"},
-        {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,5862", uni: "kg"}
-        
-    ],
-    "20115": [
-        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true},
-        {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7.5", uni: "kg"},
-        {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,5", uni: "kg"},
-        {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,586", uni: "kg"}
-    ],
-    "30005": [
-        {cod: "27001", nom: "AIGUA OSMÒTICA", base: "10", uni: "kg"},
-        {cod: "40", nom: "MORRO PORC", base: "8,34", uni: "kg"},
-        {cod: "11", nom: "LLENGUES PORC", base: "8,32", uni: "kg"},
-        {cod: "47878", nom: "TRIPA CERDO 36/38", base: "5", uni: "un", excluirTotal: true},
-        {cod: "2", nom: "ESPATLLA S/OS PORC", base: "3,5", uni: "kg"},
-        {cod: "47403", nom: "SAL FINA", base: "1,725", uni: "kg"},
-        {cod: "43820", nom: "VALDESPINO SECO VINO", base: "0,18", uni: "kg"},
-        {cod: "2129", nom: "SUCRE BLANC 1 KG 4g/kg", base: "0,08", uni: "kg"},
-        {cod: "45633", nom: "SAL NITRIFICANT 2g/kg", base: "0,075", uni: "kg"},
-        {cod: "46436", nom: "PEBRE BLANC MOLT FI", base: "0,054", uni: "kg"},
-        {cod: "47403", nom: "SAL FINA (Massa)", base: "0,05", uni: "kg"},
-        {cod: "2129", nom: "SUCRE BLANC (Massa)", base: "0,015", uni: "kg"},
-        {cod: "45634", nom: "NOU MOSCADA 0.0005/kg", base: "0,009", uni: "kg"},
-        {cod: "45633", nom: "SAL NITRIFICANT (Massa)", base: "0,007", uni: "kg"}
-    ],
-    "30041": [
-        {cod: "930041", nom: "CRUDO BOTIFARRA DUROC", base: "21", uni: "kg"},
-        {cod: "47873", nom: "TRIPA CERDO 28/30", base: "3", uni: "un", excluirTotal: true},
-        {cod: "41479", nom: "ETIQUETA ESCO 75x80", base: "11", uni: "un", excluirTotal: true},
-        {cod: "40082", nom: "FILM PA+EVOH+PE", base: "11", uni: "un", excluirTotal: true},
-        {cod: "40084", nom: "SAFATA 320.260.50", base: "11", uni: "un", excluirTotal: true}
-    ],
-    "930041": [
-        {cod: "10022", nom: "ESPATLLA PORC DUROC 8mm", base: "16", uni: "kg", usaCarro: true},
-        {cod: "49", nom: "PANXETA PORC", base: "4", uni: "kg"},
-        {cod: "27001", nom: "AIGUA", base: "1", uni: "kg"},
-        {cod: "46466", nom: "PREPARAT LONGANISSA FRESCA 5g/kg", base: "0,100", uni: "kg"},
-        {cod: "47403", nom: "SAL FINA 17g/kg", base: "0,340", uni: "kg"},
-        {cod: "46436", nom: "PEBRE BLANCA MOLT FI 3g/kg", base: "0,060", uni: "kg"}
-    ],
-    "69996": [
-        {cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true},
-        {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"},
-        {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,5", uni: "kg"},
-        {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,944", uni: "kg"}
-    ]
+    // ... [Toda la base de datos original se mantiene igual] ...
+    "77777": [{cod: "2", nom: "CARN MAGRA PORC", base: "50", uni: "kg", usaCarro: true}, {cod: "17818", nom: "TIRA DE LLOM", base: "20", uni: "kg"}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7", uni: "kg"}, {cod: "46466", nom: "PREP.LONG.FRESCA.NAT Nº20", base: "1,31", uni: "kg"}, {cod: "47403", nom: "SAL FINA", base: "1", uni: "kg"}, {cod: "46436", nom: "PEBRE BLANC MOLT FI", base: "0,19", uni: "kg"}],
+    "99999": [{cod: "10023", nom: "RETALL BACO 50/50", base: "30", uni: "kg", usaCarro: true}, {cod: "17818", nom: "TIRA DE LLOM", base: "10", uni: "kg"}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "2,000", uni: "kg"}, {cod: "16034", nom: "PREPARAT XISTORRA", base: "3,080", uni: "kg"}],
+    "30": [{cod: "40084", nom: "SAFATA 320.260.50", base: "20", uni: "un", excluirTotal: true}, {cod: "77777", nom: "CRUDO PER BUTIFFARRA SALTXITXAS", base: "30", uni: "kg"}, {cod: "47873", nom: "TRIPA DE PORC 28/30", base: "7", uni: "un", excluirTotal: true}],
+    "31": [{cod: "40084", nom: "SAFATA 320.260.50", base: "20", uni: "un", excluirTotal: true}, {cod: "77777", nom: "CRUDO PER BUTIFFARRA SALTXITXAS", base: "34", uni: "kg"}, {cod: "47876", nom: "TRIPA DE XAI 22/24", base: "7", uni: "un", excluirTotal: true}],
+    "32": [{cod: "2", nom: "ESPATLLA S/OS PORC", base: "50", uni: "kg", usaCarro: true}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "2,5", uni: "kg"}, {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,84", uni: "kg"}],
+    "34": [{cod: "99999", nom: "CRUDO XORIÇO / XISTORRA", base: "30", uni: "kg"}, {cod: "47873", nom: "TRIPA CERDO 28/30", base: "3", uni: "un", excluirTotal: true}],
+    "36": [{cod: "242", nom: "FILET POBRE VACA", base: "40", uni: "kg", usaCarro: true}, {cod: "70040", nom: "GREIX DE VEDELLA", base: "10", uni: "kg"}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "5", uni: "kg"}, {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,586", uni: "kg"}],
+    "37": [{cod: "40084", nom: "SAFATA 320.260.50", base: "20", uni: "un", excluirTotal: true}, {cod: "77777", nom: "CRUDO PER BUTIFFARRA SALTXITXAS", base: "30", uni: "kg"}, {cod: "47873", nom: "TRIPA DE PORC 28/30", base: "7", uni: "un", excluirTotal: true}, {cod: "47065", nom: "ROVELLO TROSSOS 3 KG", base: "1,62", uni: "kg"}],
+    "54": [{cod: "30002", nom: "PRODUCTE CUIT INTERMIG", base: "1,300", uni: "kg"}, {cod: "", nom: "", base: "", uni: ""}, {cod: "11", nom: "LLENGUES PORC", base: "0,2656", uni: "kg", excluirTotal: true}, {cod: "6482", nom: "PULMONS PORC", base: "0,4762", uni: "kg", excluirTotal: true}, {cod: "10860", nom: "CORS PORC", base: "0,5577", uni: "kg", excluirTotal: true}, {cod: "", nom: "", base: "", uni: ""}, {cod: "2", nom: "CARN MAGRA PORC", base: "18,7", uni: "kg"}, {cod: "48", nom: "PAPADA PORC SENSE PELL", base: "10", uni: "kg"}, {cod: "16076", nom: "CALDO", base: "0", uni: "kg"}, {cod: "47403", nom: "SAL FINA", base: "0,480", uni: "kg"}, {cod: "46436", nom: "PEBRE BLANC MOLT FI  [3 g/kg]", base: "0,090", uni: "kg"}, {cod: "16075", nom: "EXTRACTE ESPECIES   [2 g/kg]", base: "0,060", uni: "kg"}, {cod: "16090", nom: "MICROBION", base: "0,300", uni: "kg"}, {cod: "47873", nom: "TRIPA CERDO 28/30", base: "3", uni: "un", excluirTotal: true}],
+    "56": [{cod: "30002", nom: "CARNS CUIDES A CUINA", base: "27,400", uni: "kg"}, {cod: "", nom: "", base: "", uni: ""}, {cod: "15", nom: "PAPADA A/PELL PORC", base: "8,000", uni: "kg", excluirTotal: true}, {cod: "10861", nom: "COTNA PORC", base: "4,179", uni: "kg", excluirTotal: true}, {cod: "40", nom: "MORRO PORC", base: "5,000", uni: "kg", excluirTotal: true}, {cod: "7020", nom: "RETALL CAP PORC", base: "3,400", uni: "kg", excluirTotal: true}, {cod: "6482", nom: "PULMONS PORC", base: "4,480", uni: "kg", excluirTotal: true}, {cod: "10860", nom: "CORS PORC", base: "3,060", uni: "kg", excluirTotal: true}, {cod: "", nom: "", base: "", uni: ""}, {cod: "7400", nom: "SANG PORC", base: "6", uni: "Litros"}, {cod: "2671", nom: "GREIX PORC per negra", base: "5,400", uni: "kg"}, {cod: "47403", nom: "SAL FINA", base: "0,620", uni: "kg"}, {cod: "46429", nom: "PEBRE NEGRE MOLT FI", base: "0,115", uni: "kg"}, {cod: "16090", nom: "MICROBION", base: "0,388", uni: "kg", excluirTotal: false}, {cod: "47878", nom: "TRIPA CERDO 36/38", base: "4", uni: "un", excluirTotal: true}, {cod: "40079", nom: "BOLSA VACIO 150X210 RET", base: "137", uni: "un", excluirTotal: true}],
+    "58": [{cod: "99958", nom: "CRUDO BOTIFARRA CATALANA", base: "16", uni: "kg"}, {cod: "49", nom: "PANXETA PORC", base: "4", uni: "kg"}, {cod: "47403", nom: "SAL FINA 14g/kg", base: "0,28", uni: "kg"}, {cod: "50071", nom: "PICADILLO TOFONA", base: "0,2", uni: "kg"}, {cod: "15034", nom: "VINO COCINA JIN FAN 500 ML", base: "0,2", uni: "kg"}, {cod: "2129", nom: "SUCRE BLANC 1 KG 4g/kg", base: "0,08", uni: "kg"}, {cod: "46436", nom: "PEBRE BLANC MOLT FI 2g/kg", base: "0,04", uni: "kg"}, {cod: "45633", nom: "SAL NITRIFICANT 2g/kg", base: "0,04", uni: "kg"}, {cod: "40074", nom: "ACID ASCORBIC", base: "0,01", uni: "kg"}, {cod: "45634", nom: "NOU MOSCADA 0.0005/kg", base: "0,01", uni: "kg"}],
+    "99958": [{cod: "2", nom: "PERNIL FRESC SENSE OS", base: "16", uni: "kg", usaCarro: true}, {cod: "49", nom: "PANXETA PORC", base: "4", uni: "kg"}, {cod: "47403", nom: "SAL FINA 14g/kg", base: "0,28", uni: "kg"}, {cod: "2129", nom: "SUCRE BLANC 1 KG 4g/kg", base: "0,080", uni: "kg"}, {cod: "27001", nom: "AIGUA", base: "0,400", uni: "kg"}, {cod: "45633", nom: "SAL NITRIFICANT 2g/kg", base: "0,040", uni: "kg"}, {cod: "15034", nom: "VINO COCINA JIN FAN 500 ML", base: "0,2", uni: "kg"}, {cod: "46436", nom: "PEBRE BLANC MOLT FI 2g/kg", base: "0,04", uni: "kg"}, {cod: "40074", nom: "ACID ASCORBIC", base: "0,01", uni: "kg"}, {cod: "45634", nom: "NOU MOSCADA 0.0005/kg", base: "0,01", uni: "kg"}],
+    "70": [{cod: "99970", nom: "CRUDO PER CAP SENGLAR JABALI", base: "13,800", uni: "kg"}, {cod: "2", nom: "CARN MAGRA PORC", base: "3,2", uni: "kg", excluirTotal: false}, {cod: "45633", nom: "SAL NITRIFICANT", base: "0,005", uni: "kg", excluirTotal: false}, {cod: "47403", nom: "SAL FINA", base: "0,050", uni: "kg", excluirTotal: false}, {cod: "2129", nom: "SUCRE BLANC", base: "0,015", uni: "kg", excluirTotal: false}, {cod: "46436", nom: "PEBRE BLANC MOLT FI", base: "0,050", uni: "kg", excluirTotal: false}, {cod: "15034", nom: "VINO COCINA JIN FAN", base: "0,200", uni: "kg", excluirTotal: false}, {cod: "45634", nom: "NOU MOSCADA", base: "0,005", uni: "kg", excluirTotal: false}, {cod: "16090", nom: "MICROBION", base: "0,200", uni: "kg", excluirTotal: false}, {cod: "40074", nom: "ASCORBATO SÓDICO", base: "0,010", uni: "kg", excluirTotal: false}, {cod: "50", nom: "ALBARDES PORC", base: "3,400", uni: "kg", excluirTotal: false}],
+    "82": [{cod: "16", nom: "MANS PORC", base: "19,000", uni: "kg"}, {cod: "27001", nom: "AIGUA", base: "15,000", uni: "kg"}, {cod: "47403", nom: "SAL FINA", base: "1,500", uni: "kg"}, {cod: "16090", nom: "MICROBION", base: "0,350", uni: "kg"}],
+    "99970": [{cod: "11", nom: "LLENGUES PORC", base: "8,400", uni: "kg"}, {cod: "40", nom: "MORRO PORC", base: "8,400", uni: "kg"}, {cod: "27001", nom: "AIGUA", base: "12", uni: "kg"}, {cod: "47403", nom: "SAL FINA", base: "0,480", uni: "kg"}, {cod: "45633", nom: "SAL NITRIFICANT", base: "0,120", uni: "kg"}, {cod: "2129", nom: "SUCRE BLANC", base: "0,080", uni: "kg"}],
+    "94": [{cod: "30002", nom: "PRODUCTE CUIT INTERMIG", base: "24", uni: "kg"}, {cod: "", nom: "", base: "", uni: ""}, {cod: "7020", nom: "RETALL CAP PORC", base: "4,56", uni: "kg", excluirTotal: true}, {cod: "10860", nom: "CORS PORC", base: "3,38", uni: "kg", excluirTotal: true}, {cod: "6482", nom: "PULMONS PORC", base: "5,94", uni: "kg", excluirTotal: true}, {cod: "18434", nom: "VENTRE PORC", base: "3,36", uni: "kg", excluirTotal: true}, {cod: "11", nom: "LLENGUES PORC", base: "2,56", uni: "kg", excluirTotal: true}, {cod: "40", nom: "MORRO PORC", base: "10", uni: "kg", excluirTotal: true}, {cod: "", nom: "", base: "", uni: ""}, {cod: "15", nom: "PAPADA A/PELL PORC [limpia]", base: "4,5", uni: "kg"}, {cod: "47403", nom: "SAL FINA 16  g/kg", base: "0,456", uni: "kg"}, {cod: "46429", nom: "PEBRE NEGRE 3,5 g/kg", base: "0,100", uni: "kg"}, {cod: "16090", nom: "MICROBION", base: "0,285", uni: "kg"}, {cod: "47878", nom: "TRIPA CERDO 36/38", base: "4,5", uni: "un", excluirTotal: true}],
+    "95": [{cod: "2", nom: "ESPATLLA S/OS PORC", base: "7,7", uni: "kg"}, {cod: "43067", nom: "OU LIQUIT PASTEURITZAT", base: "7", uni: "Litros"}, {cod: "48", nom: "PAPADA PORC S/PELL", base: "4,3", uni: "kg"}, {cod: "47873", nom: "TRIPA CERDO 28/30", base: "3", uni: "un", excluirTotal: true}, {cod: "379", nom: "ROVELL OU", base: "1", uni: "Litros"}, {cod: "47403", nom: "SAL FINA", base: "0,3", uni: "kg"}, {cod: "16075", nom: "EXTRACTE ESPECIES   [2 g/kg]", base: "0,04", uni: "kg"}, {cod: "46436", nom: "PEBRE BLANC MOLT FI", base: "0,04", uni: "kg"}, {cod: "16090", nom: "MICROBION", base: "0,200", uni: "kg"}],
+    "105": [{cod: "99999", nom: "CRUDO XORIÇO / XISTORRA", base: "30", uni: "kg"}, {cod: "47876", nom: "TRIPA XAI 22/24", base: "0,23", uni: "un", excluirTotal: true}],
+    "197": [{cod: "70040", nom: "CARN VEDELLA", base: "7,5", uni: "kg"}, {cod: "10023", nom: "RETALL BACO 50/50", base: "7,5", uni: "kg"}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "0,750", uni: "kg"}, {cod: "46472", nom: "PREP. CRIOLLO", base: "0,788", uni: "kg"}, {cod: "47873", nom: "TRIPA CERDO 28/30", base: "3", uni: "un", excluirTotal: true}, {cod: "40486", nom: "BOLSA VACIO 250X350", base: "9", uni: "kg", excluirTotal: true}],
+    "223": [{cod: "70014", nom: "PEIXET PAPADA VEDELL", base: "50", uni: "kg", usaCarro: true}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"}, {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,725", uni: "kg"}, {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,944", uni: "kg"}],
+    "225": [{cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"}, {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,5", uni: "kg"}, {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,944", uni: "kg"}],
+    "226": [{cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"}, {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,500", uni: "kg"}, {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,593", uni: "kg"}],
+    "228": [{cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"}, {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,5", uni: "kg"}, {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,944", uni: "kg"}],
+    "229": [{cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"}, {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,5", uni: "kg"}, {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,944", uni: "kg"}],
+    "303": [{cod: "40084", nom: "SAFATA 320.260.50", base: "10", uni: "un", excluirTotal: true}, {cod: "88888", nom: "CRUDO PER BUTIFFARRA SALTXITXAS", base: "15", uni: "kg"}],
+    "317": [{cod: "40084", nom: "SAFATA POREX 17.5X25X4", base: "10", uni: "un", excluirTotal: true}, {cod: "88888", nom: "CRUDO PER BUTIFFARRA SALTXITXAS", base: "12", uni: "kg"}, {cod: "47876", nom: "TRIPA DE XAI 22/24", base: "7", uni: "un", excluirTotal: true}],
+    "2031": [{cod: "242", nom: "FILET POBRE VACA", base: "25", uni: "kg", usaCarro: true}, {cod: "225", nom: "COSTELLA VEDELLA SENSE OS", base: "25", uni: "kg"}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"}, {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,500", uni: "kg"}, {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,593", uni: "kg"}],
+    "88888": [{cod: "301", nom: "PIT POLLASTRE", base: "12,5", uni: "kg", usaCarro: true}, {cod: "10006", nom: "CARN POLLASTRE", base: "12,5", uni: "kg"}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "3,75", uni: "kg"}, {cod: "16076", nom: "FIBRA DE PESOL", base: "0,862", uni: "kg"}, {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "0,800", uni: "kg"}],
+    "10035": [{cod: "69913", nom: "FILLET ANGUS", base: "25", uni: "kg", usaCarro: true}, {cod: "70040", nom: "CARN DE VEDELLA", base: "25", uni: "kg"}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"}, {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,5", uni: "kg"}, {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,188", uni: "kg"}],
+    "10042": [{cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"}, {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,5", uni: "kg"}, {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,5862", uni: "kg"}],
+    "20115": [{cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7.5", uni: "kg"}, {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,5", uni: "kg"}, {cod: "46480", nom: "BURGER MEAT 40 - 27 g/Kg", base: "1,586", uni: "kg"}],
+    "30005": [{cod: "27001", nom: "AIGUA OSMÒTICA", base: "10", uni: "kg"}, {cod: "40", nom: "MORRO PORC", base: "8,34", uni: "kg"}, {cod: "11", nom: "LLENGUES PORC", base: "8,32", uni: "kg"}, {cod: "47878", nom: "TRIPA CERDO 36/38", base: "5", uni: "un", excluirTotal: true}, {cod: "2", nom: "ESPATLLA S/OS PORC", base: "3,5", uni: "kg"}, {cod: "47403", nom: "SAL FINA", base: "1,725", uni: "kg"}, {cod: "43820", nom: "VALDESPINO SECO VINO", base: "0,18", uni: "kg"}, {cod: "2129", nom: "SUCRE BLANC 1 KG 4g/kg", base: "0,08", uni: "kg"}, {cod: "45633", nom: "SAL NITRIFICANT 2g/kg", base: "0,075", uni: "kg"}, {cod: "46436", nom: "PEBRE BLANC MOLT FI", base: "0,054", uni: "kg"}, {cod: "47403", nom: "SAL FINA (Massa)", base: "0,05", uni: "kg"}, {cod: "2129", nom: "SUCRE BLANC (Massa)", base: "0,015", uni: "kg"}, {cod: "45634", nom: "NOU MOSCADA 0.0005/kg", base: "0,009", uni: "kg"}, {cod: "45633", nom: "SAL NITRIFICANT (Massa)", base: "0,007", uni: "kg"}],
+    "30041": [{cod: "930041", nom: "CRUDO BOTIFARRA DUROC", base: "21", uni: "kg"}, {cod: "47873", nom: "TRIPA CERDO 28/30", base: "3", uni: "un", excluirTotal: true}, {cod: "41479", nom: "ETIQUETA ESCO 75x80", base: "11", uni: "un", excluirTotal: true}, {cod: "40082", nom: "FILM PA+EVOH+PE", base: "11", uni: "un", excluirTotal: true}, {cod: "40084", nom: "SAFATA 320.260.50", base: "11", uni: "un", excluirTotal: true}],
+    "930041": [{cod: "10022", nom: "ESPATLLA PORC DUROC 8mm", base: "16", uni: "kg", usaCarro: true}, {cod: "49", nom: "PANXETA PORC", base: "4", uni: "kg"}, {cod: "27001", nom: "AIGUA", base: "1", uni: "kg"}, {cod: "46466", nom: "PREPARAT LONGANISSA FRESCA 5g/kg", base: "0,100", uni: "kg"}, {cod: "47403", nom: "SAL FINA 17g/kg", base: "0,340", uni: "kg"}, {cod: "46436", nom: "PEBRE BLANCA MOLT FI 3g/kg", base: "0,060", uni: "kg"}],
+    "69996": [{cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"}, {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,5", uni: "kg"}, {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,944", uni: "kg"}]
 };
 
+// --- NAVEGACIÓN Y TABS ---
+function cambiarSeccion(seccion) {
+    ocultarTeclados();
+    if (seccion === 'produccion') {
+        document.getElementById('seccion-produccion').classList.remove('d-none');
+        document.getElementById('seccion-estadisticas').classList.add('d-none');
+    } else {
+        document.getElementById('seccion-produccion').classList.add('d-none');
+        document.getElementById('seccion-estadisticas').classList.remove('d-none');
+        renderEstadisticas();
+    }
+}
+
+// --- LOGICA ESTADÍSTICAS ---
+function guardarEnEstadisticas(recetaId, recetaNombre, kilosTotal) {
+    const ahora = new Date();
+    // Primary Key = Id "Receta"-"Fecha y Hora"
+    const pk = `${recetaId}-${ahora.toISOString()}`; 
+    let estadisticas = JSON.parse(localStorage.getItem('estadisticasBatch') || '{}');
+    
+    // Evita duplicidad comprobando si la key ya existe (aunque siendo ISOString será única por cada nuevo Batch real)
+    if (!estadisticas[pk]) {
+        estadisticas[pk] = {
+            fechaFormato: ahora.toLocaleString('es-ES'),
+            receta: recetaNombre,
+            totalKg: parseFloat(kilosTotal.replace(',', '.')) || 0
+        };
+        localStorage.setItem('estadisticasBatch', JSON.stringify(estadisticas));
+    }
+}
+
+function renderEstadisticas() {
+    const estadisticas = JSON.parse(localStorage.getItem('estadisticasBatch') || '{}');
+    const tbody = document.getElementById('tabla-estadisticas-body');
+    tbody.innerHTML = '';
+    
+    let sumaKilos = 0;
+    
+    for (const [pk, data] of Object.entries(estadisticas)) {
+        sumaKilos += data.totalKg;
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${data.fechaFormato}</td>
+            <td>${data.receta}</td>
+            <td class="fw-bold text-success">${Number(data.totalKg.toFixed(3)).toString().replace('.', ',')} kg</td>
+        `;
+        tbody.appendChild(tr);
+    }
+    
+    document.getElementById('total-sum-kg').innerText = Number(sumaKilos.toFixed(3)).toString().replace('.', ',') + ' kg';
+}
+
+function limpiarEstadisticas() {
+    if (confirm('Estàs segur que vols netejar TOTES les estadístiques emmagatzemades al dispositiu?')) {
+        localStorage.removeItem('estadisticasBatch');
+        renderEstadisticas();
+    }
+}
+
+// --- LÓGICA PRINCIPAL DE LA APP ---
 document.addEventListener("DOMContentLoaded", () => {
     const selectReceta = document.getElementById("receta");
     const noRecetaMsg = document.getElementById("no-receta-msg");
@@ -959,6 +817,9 @@ function enviarAGoogleSheets(event) {
         body: JSON.stringify(payload)
     })
     .then(response => {
+        // --- AQUÍ GUARDAMOS EL BATCH EN ESTADÍSTICAS ---
+        guardarEnEstadisticas(selectReceta.value, selectReceta.options[selectReceta.selectedIndex].text, totalBatchCalculado);
+        
         alert("¡Batch guardado correctamente!");
         window.location.reload(); 
     })
