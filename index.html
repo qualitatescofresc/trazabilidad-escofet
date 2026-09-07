@@ -6,13 +6,11 @@
     <title>MES - Trazabilidad de Producción</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* Ajuste de padding inferior para que los teclados no tapen la tabla */
         body { background-color: #f8f9fa; padding: 20px; padding-bottom: 340px; } 
         .card { border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         .btn-lg { padding: 15px 30px; font-size: 1.25rem; } 
         .fila-limitante { background-color: #fff3cd !important; transition: background-color 0.2s ease; }
 
-        /* Ajuste estrecho para la columna Quantitat Base */
         .tabla-produccion th:nth-child(4),
         .tabla-produccion td:nth-child(4) {
             width: 1% !important;
@@ -22,85 +20,39 @@
             text-align: center;
         }
 
-        /* Distribución equidistante para los elementos de Ús Real (con carro) */
-        .tabla-produccion td .input-group.flex-nowrap {
-            display: flex !important;
-        }
-
+        .tabla-produccion td .input-group.flex-nowrap { display: flex !important; }
         .tabla-produccion td .input-group.flex-nowrap > .input-teclado,
         .tabla-produccion td .input-group.flex-nowrap > .select-tara,
         .tabla-produccion td .input-group.flex-nowrap > .num-input {
-            flex: 1 1 0% !important;
-            width: 0 !important;
-            min-width: 0 !important;
-            max-width: none !important;
-            text-align: center;
-            padding-left: 2px !important;
-            padding-right: 2px !important;
+            flex: 1 1 0% !important; width: 0 !important; min-width: 0 !important; max-width: none !important;
+            text-align: center; padding-left: 2px !important; padding-right: 2px !important;
         }
 
-        /* Emparejamiento de tamaño estricto para la columna de lotes */
-        .select-lote-personalizado, .input-lote-manual {
-            font-size: 1.25rem !important;
-            height: calc(3.5rem + 2px); 
-            font-weight: bold !important;
-        }
+        .select-lote-personalizado, .input-lote-manual { font-size: 1.25rem !important; height: calc(3.5rem + 2px); font-weight: bold !important; }
+        .scale-checkbox { transform: scale(1.6); cursor: pointer; margin-top: 0.5rem; }
 
-        /* Checkbox de Ajuste Proporcional ampliado para fácil toque en tablet */
-        .scale-checkbox {
-            transform: scale(1.6);
-            cursor: pointer;
-            margin-top: 0.5rem;
-        }
-
-        /* --- CONTENEDORES GENERALES DE TECLADOS --- */
         .numpad-container, .keyboard-container {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #e9ecef;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
-            padding: 15px;
-            border-radius: 20px 20px 0 0;
-            z-index: 1060;
-            width: 100%;
-            transition: all 0.2s ease-in-out;
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+            background-color: #e9ecef; box-shadow: 0 -4px 15px rgba(0,0,0,0.3); padding: 15px;
+            border-radius: 20px 20px 0 0; z-index: 1060; width: 100%; transition: all 0.2s ease-in-out;
         }
         .numpad-container.hidden, .keyboard-container.hidden { display: none; }
-
-        /* --- TECLADO NUMÉRICO --- */
         .numpad-container { max-width: 450px; }
         .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        
-        /* --- TECLADO ALFANUMÉRICO QWERTY --- */
         .keyboard-container { max-width: 850px; }
         .keyboard-row { display: flex; justify-content: center; gap: 6px; margin-bottom: 8px; }
         
-        /* Estilos base de botones de teclado */
         .btn-num, .btn-key {
-            background-color: #ffffff;
-            border: 1px solid #ced4da;
-            padding: 14px;
-            font-size: 1.4rem;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-            user-select: none;
-            color: #212529;
-            text-align: center;
+            background-color: #ffffff; border: 1px solid #ced4da; padding: 14px; font-size: 1.4rem;
+            font-weight: bold; border-radius: 10px; cursor: pointer; user-select: none; color: #212529; text-align: center;
         }
         .btn-num { padding: 18px; font-size: 1.6rem; }
         .btn-key { min-width: 50px; height: 55px; display: flex; align-items: center; justify-content: center; flex-grow: 1; }
         .btn-num:active, .btn-key:active { background-color: #dee2e6; }
-        
-        /* Botones especiales de acción */
         .action-clear { background-color: #ffc107; color: #212529; border-color: #ffc107; }
         .action-done { background-color: #198754; color: white; border-color: #198754; }
         .key-wide { flex-grow: 2; background-color: #e2e8f0; }
         .key-space { flex-grow: 6; background-color: #ffffff; }
-
-        /* Indicador de carga de datos */
         .status-badge { font-size: 0.9rem; position: absolute; top: 15px; right: 20px; }
     </style>
 </head>
@@ -113,9 +65,9 @@
         <span class="display-4 fw-bold text-danger">PREPARATS CARNICS ESCO FRESC S.L.U. - Sistema de Traçabilitat</span>
     </header>
 
-    <!-- SEGMENTADORES (TABS) -->
+    <!-- SEGMENTADORES (TABS) PRINCIPALES -->
     <div class="d-flex justify-content-center mb-4">
-        <div class="btn-group shadow-sm" role="group" aria-label="Segmentadores de sección">
+        <div class="btn-group shadow-sm" role="group">
             <input type="radio" class="btn-check" name="seccionRadio" id="btn-produccion" autocomplete="off" checked onchange="cambiarSeccion('produccion')">
             <label class="btn btn-outline-danger btn-lg px-5 fw-bold" for="btn-produccion">PRODUCCIÓ</label>
 
@@ -172,38 +124,23 @@
         <div class="col-12">
             <div class="card p-4">
                 <h3>2. Disponibilitat i Escalat</h3>
-                
-                <div id="no-receta-msg" class="text-center text-muted mt-5">
-                    Seleccioneu una recepta per veure els detalls d'estoc.
-                </div>
-
+                <div id="no-receta-msg" class="text-center text-muted mt-5">Seleccioneu una recepta per veure els detalls d'estoc.</div>
                 <div id="tabla-contenedor" class="d-none">
                     <form id="form-batch" onsubmit="enviarAGoogleSheets(event)">
                         <table class="table table-hover mt-3 align-middle tabla-produccion">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Codi</th>
-                                    <th>Ingredient</th>
-                                    <th style="width: 220px;">Lote SAGE</th>
-                                    <th>Quantitat Base</th>
-                                    <th>Unitat</th>
+                                    <th>Codi</th><th>Ingredient</th><th style="width: 220px;">Lote SAGE</th>
+                                    <th>Quantitat Base</th><th>Unitat</th>
                                     <th class="text-center" style="width: 90px;">Escalat<br>Automàtic</th>
                                     <th>Ús Real (Limitant)</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabla-ingredientes-body">
-                            </tbody>
+                            <tbody id="tabla-ingredientes-body"></tbody>
                             <tfoot class="table-dark">
-                                <tr class="fw-bold">
-                                    <td colspan="3">TOTAL FORMULACIÓ LOT</td>
-                                    <td id="total-base-campo" class="text-center">-</td>
-                                    <td></td>
-                                    <td></td>
-                                    <td id="total-real-campo">-</td>
-                                </tr>
+                                <tr class="fw-bold"><td colspan="3">TOTAL FORMULACIÓ LOT</td><td id="total-base-campo" class="text-center">-</td><td></td><td></td><td id="total-real-campo">-</td></tr>
                             </tfoot>
                         </table>
-
                         <div class="text-end mt-4">
                             <button type="button" class="btn btn-secondary btn-lg me-2" onclick="window.location.reload();">Cancel·lar</button>
                             <button type="submit" id="btn-guardar" class="btn btn-success btn-lg shadow">Confirmar i Desar Batch</button>
@@ -219,14 +156,39 @@
         <div class="col-12">
             <div class="card p-4 text-center border-danger">
                 <h3>Resum de Producció</h3>
-                <p class="text-muted">Total acumulat dels batch guardats correctament.</p>
                 
-                <div class="display-3 fw-bold text-success my-4" id="total-sum-kg">0,000 kg</div>
-                <h5>Suma Total Batch</h5>
+                <!-- SUB-SEGMENTADORES ESTADÍSTICAS -->
+                <div class="d-flex justify-content-center my-4">
+                    <div class="btn-group shadow-sm" role="group">
+                        <input type="radio" class="btn-check" name="subEst" id="btn-est-avui" autocomplete="off" checked onchange="cambiarSubSeccion('avui')">
+                        <label class="btn btn-outline-secondary px-4 fw-bold" for="btn-est-avui">Avui</label>
+
+                        <input type="radio" class="btn-check" name="subEst" id="btn-est-recepta" autocomplete="off" onchange="cambiarSubSeccion('recepta')">
+                        <label class="btn btn-outline-secondary px-4 fw-bold" for="btn-est-recepta">Per Recepta</label>
+
+                        <input type="radio" class="btn-check" name="subEst" id="btn-est-historic" autocomplete="off" onchange="cambiarSubSeccion('historic')">
+                        <label class="btn btn-outline-secondary px-4 fw-bold" for="btn-est-historic">Històric Dies</label>
+                    </div>
+                </div>
+
+                <!-- SELECTOR DE DÍAS (Oculto por defecto) -->
+                <div id="selector-dias-container" class="d-none mb-3 w-50 mx-auto">
+                    <select class="form-select text-center fw-bold" id="select-dias-historic" onchange="renderEstadisticas()">
+                        <option value="2">Últims 2 dies</option>
+                        <option value="3">Últims 3 dies</option>
+                        <option value="4">Últims 4 dies</option>
+                        <option value="5">Últims 5 dies</option>
+                        <option value="6">Últims 6 dies</option>
+                        <option value="7">Últims 7 dies</option>
+                    </select>
+                </div>
+                
+                <div class="display-3 fw-bold text-success my-3" id="total-sum-kg">0,000 kg</div>
+                <h5 id="titulo-suma-estadisticas">Suma Total Avui</h5>
 
                 <div class="table-responsive mt-4">
                     <table class="table table-striped table-hover text-start align-middle">
-                        <thead class="table-dark">
+                        <thead class="table-dark" id="tabla-estadisticas-head">
                             <tr>
                                 <th>Data i Hora</th>
                                 <th>Recepta</th>
@@ -234,13 +196,12 @@
                             </tr>
                         </thead>
                         <tbody id="tabla-estadisticas-body">
-                            <!-- Filas dinámicas de localStorage -->
                         </tbody>
                     </table>
                 </div>
                 
                 <div class="text-end mt-3">
-                    <button class="btn btn-outline-danger" onclick="limpiarEstadisticas()">Netejar Estadístiques</button>
+                    <button class="btn btn-outline-danger" onclick="limpiarEstadisticas()">Netejar Estadístiques Globals</button>
                 </div>
             </div>
         </div>
@@ -267,50 +228,32 @@
 
 <div id="alphanumeric-keyboard" class="keyboard-container hidden">
     <div class="keyboard-row">
-        <button type="button" class="btn-key" data-key="1">1</button>
-        <button type="button" class="btn-key" data-key="2">2</button>
-        <button type="button" class="btn-key" data-key="3">3</button>
-        <button type="button" class="btn-key" data-key="4">4</button>
-        <button type="button" class="btn-key" data-key="5">5</button>
-        <button type="button" class="btn-key" data-key="6">6</button>
-        <button type="button" class="btn-key" data-key="7">7</button>
-        <button type="button" class="btn-key" data-key="8">8</button>
-        <button type="button" class="btn-key" data-key="9">9</button>
-        <button type="button" class="btn-key" data-key="0">0</button>
+        <button type="button" class="btn-key" data-key="1">1</button><button type="button" class="btn-key" data-key="2">2</button>
+        <button type="button" class="btn-key" data-key="3">3</button><button type="button" class="btn-key" data-key="4">4</button>
+        <button type="button" class="btn-key" data-key="5">5</button><button type="button" class="btn-key" data-key="6">6</button>
+        <button type="button" class="btn-key" data-key="7">7</button><button type="button" class="btn-key" data-key="8">8</button>
+        <button type="button" class="btn-key" data-key="9">9</button><button type="button" class="btn-key" data-key="0">0</button>
         <button type="button" class="btn-key" data-key="-">-</button>
     </div>
     <div class="keyboard-row">
-        <button type="button" class="btn-key" data-key="Q">Q</button>
-        <button type="button" class="btn-key" data-key="W">W</button>
-        <button type="button" class="btn-key" data-key="E">E</button>
-        <button type="button" class="btn-key" data-key="R">R</button>
-        <button type="button" class="btn-key" data-key="T">T</button>
-        <button type="button" class="btn-key" data-key="Y">Y</button>
-        <button type="button" class="btn-key" data-key="U">U</button>
-        <button type="button" class="btn-key" data-key="I">I</button>
-        <button type="button" class="btn-key" data-key="O">O</button>
-        <button type="button" class="btn-key" data-key="P">P</button>
+        <button type="button" class="btn-key" data-key="Q">Q</button><button type="button" class="btn-key" data-key="W">W</button>
+        <button type="button" class="btn-key" data-key="E">E</button><button type="button" class="btn-key" data-key="R">R</button>
+        <button type="button" class="btn-key" data-key="T">T</button><button type="button" class="btn-key" data-key="Y">Y</button>
+        <button type="button" class="btn-key" data-key="U">U</button><button type="button" class="btn-key" data-key="I">I</button>
+        <button type="button" class="btn-key" data-key="O">O</button><button type="button" class="btn-key" data-key="P">P</button>
     </div>
     <div class="keyboard-row">
-        <button type="button" class="btn-key" data-key="A">A</button>
-        <button type="button" class="btn-key" data-key="S">S</button>
-        <button type="button" class="btn-key" data-key="D">D</button>
-        <button type="button" class="btn-key" data-key="F">F</button>
-        <button type="button" class="btn-key" data-key="G">G</button>
-        <button type="button" class="btn-key" data-key="H">H</button>
-        <button type="button" class="btn-key" data-key="J">J</button>
-        <button type="button" class="btn-key" data-key="K">K</button>
-        <button type="button" class="btn-key" data-key="L">L</button>
-        <button type="button" class="btn-key" data-key="Ñ">Ñ</button>
+        <button type="button" class="btn-key" data-key="A">A</button><button type="button" class="btn-key" data-key="S">S</button>
+        <button type="button" class="btn-key" data-key="D">D</button><button type="button" class="btn-key" data-key="F">F</button>
+        <button type="button" class="btn-key" data-key="G">G</button><button type="button" class="btn-key" data-key="H">H</button>
+        <button type="button" class="btn-key" data-key="J">J</button><button type="button" class="btn-key" data-key="K">K</button>
+        <button type="button" class="btn-key" data-key="L">L</button><button type="button" class="btn-key" data-key="Ñ">Ñ</button>
     </div>
     <div class="keyboard-row">
         <button type="button" class="btn-key action-clear key-wide" data-key="BORRAR">BORRAR</button>
-        <button type="button" class="btn-key" data-key="Z">Z</button>
-        <button type="button" class="btn-key" data-key="X">X</button>
-        <button type="button" class="btn-key" data-key="C">C</button>
-        <button type="button" class="btn-key" data-key="V">V</button>
-        <button type="button" class="btn-key" data-key="B">B</button>
-        <button type="button" class="btn-key" data-key="N">N</button>
+        <button type="button" class="btn-key" data-key="Z">Z</button><button type="button" class="btn-key" data-key="X">X</button>
+        <button type="button" class="btn-key" data-key="C">C</button><button type="button" class="btn-key" data-key="V">V</button>
+        <button type="button" class="btn-key" data-key="B">B</button><button type="button" class="btn-key" data-key="N">N</button>
         <button type="button" class="btn-key" data-key="M">M</button>
         <button type="button" class="btn-key action-done key-wide" data-key="OK">OK</button>
     </div>
@@ -323,9 +266,9 @@ const SAGE_CSV_URL = "https://docs.google.com/spreadsheets/d/1svOd-IdYqybrTdijHO
 let lotesTemporalesSAGE = {};
 let currentInput = null;
 let currentLoteInput = null;
+let modoEstadisticas = 'avui';
 
 const baseDatosIngredientes = {
-    // ... [Toda la base de datos original se mantiene igual] ...
     "77777": [{cod: "2", nom: "CARN MAGRA PORC", base: "50", uni: "kg", usaCarro: true}, {cod: "17818", nom: "TIRA DE LLOM", base: "20", uni: "kg"}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7", uni: "kg"}, {cod: "46466", nom: "PREP.LONG.FRESCA.NAT Nº20", base: "1,31", uni: "kg"}, {cod: "47403", nom: "SAL FINA", base: "1", uni: "kg"}, {cod: "46436", nom: "PEBRE BLANC MOLT FI", base: "0,19", uni: "kg"}],
     "99999": [{cod: "10023", nom: "RETALL BACO 50/50", base: "30", uni: "kg", usaCarro: true}, {cod: "17818", nom: "TIRA DE LLOM", base: "10", uni: "kg"}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "2,000", uni: "kg"}, {cod: "16034", nom: "PREPARAT XISTORRA", base: "3,080", uni: "kg"}],
     "30": [{cod: "40084", nom: "SAFATA 320.260.50", base: "20", uni: "un", excluirTotal: true}, {cod: "77777", nom: "CRUDO PER BUTIFFARRA SALTXITXAS", base: "30", uni: "kg"}, {cod: "47873", nom: "TRIPA DE PORC 28/30", base: "7", uni: "un", excluirTotal: true}],
@@ -363,7 +306,6 @@ const baseDatosIngredientes = {
     "69996": [{cod: "70040", nom: "CARN VEDELLA", base: "50", uni: "kg", usaCarro: true}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"}, {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,5", uni: "kg"}, {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,944", uni: "kg"}]
 };
 
-// --- NAVEGACIÓN Y TABS ---
 function cambiarSeccion(seccion) {
     ocultarTeclados();
     if (seccion === 'produccion') {
@@ -376,17 +318,30 @@ function cambiarSeccion(seccion) {
     }
 }
 
-// --- LOGICA ESTADÍSTICAS ---
+function cambiarSubSeccion(modo) {
+    modoEstadisticas = modo;
+    const selectorDias = document.getElementById('selector-dias-container');
+    const tituloSuma = document.getElementById('titulo-suma-estadisticas');
+    
+    if (modo === 'historic') {
+        selectorDias.classList.remove('d-none');
+        tituloSuma.innerText = "Suma Total Històric";
+    } else {
+        selectorDias.classList.add('d-none');
+        tituloSuma.innerText = modo === 'avui' ? "Suma Total Avui" : "Suma Total Per Recepta";
+    }
+    renderEstadisticas();
+}
+
 function guardarEnEstadisticas(recetaId, recetaNombre, kilosTotal) {
     const ahora = new Date();
-    // Primary Key = Id "Receta"-"Fecha y Hora"
     const pk = `${recetaId}-${ahora.toISOString()}`; 
     let estadisticas = JSON.parse(localStorage.getItem('estadisticasBatch') || '{}');
     
-    // Evita duplicidad comprobando si la key ya existe (aunque siendo ISOString será única por cada nuevo Batch real)
     if (!estadisticas[pk]) {
         estadisticas[pk] = {
             fechaFormato: ahora.toLocaleString('es-ES'),
+            timestamp: ahora.getTime(), // Facilitará el filtrado de fechas
             receta: recetaNombre,
             totalKg: parseFloat(kilosTotal.replace(',', '.')) || 0
         };
@@ -397,20 +352,54 @@ function guardarEnEstadisticas(recetaId, recetaNombre, kilosTotal) {
 function renderEstadisticas() {
     const estadisticas = JSON.parse(localStorage.getItem('estadisticasBatch') || '{}');
     const tbody = document.getElementById('tabla-estadisticas-body');
+    const thead = document.getElementById('tabla-estadisticas-head');
     tbody.innerHTML = '';
     
     let sumaKilos = 0;
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0); 
     
-    for (const [pk, data] of Object.entries(estadisticas)) {
-        sumaKilos += data.totalKg;
+    let datosArray = Object.values(estadisticas);
+
+    if (modoEstadisticas === 'avui') {
+        thead.innerHTML = `<tr><th>Data i Hora</th><th>Recepta</th><th>Kilos Processats</th></tr>`;
+        datosArray.forEach(data => {
+            const fechaItem = new Date(data.timestamp || data.fechaFormato); 
+            if (fechaItem >= hoy) {
+                sumaKilos += data.totalKg;
+                tbody.innerHTML += `<tr><td>${data.fechaFormato}</td><td>${data.receta}</td><td class="fw-bold text-success">${Number(data.totalKg.toFixed(3)).toString().replace('.', ',')} kg</td></tr>`;
+            }
+        });
+    } 
+    else if (modoEstadisticas === 'recepta') {
+        thead.innerHTML = `<tr><th>Recepta</th><th>Kilos Totals Acumulats</th></tr>`;
+        const agrupado = {};
+        datosArray.forEach(data => {
+            if (!agrupado[data.receta]) agrupado[data.receta] = 0;
+            agrupado[data.receta] += data.totalKg;
+        });
         
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${data.fechaFormato}</td>
-            <td>${data.receta}</td>
-            <td class="fw-bold text-success">${Number(data.totalKg.toFixed(3)).toString().replace('.', ',')} kg</td>
-        `;
-        tbody.appendChild(tr);
+        for (const [receta, kg] of Object.entries(agrupado)) {
+            sumaKilos += kg;
+            tbody.innerHTML += `<tr><td>${receta}</td><td class="fw-bold text-success">${Number(kg.toFixed(3)).toString().replace('.', ',')} kg</td></tr>`;
+        }
+    } 
+    else if (modoEstadisticas === 'historic') {
+        thead.innerHTML = `<tr><th>Data i Hora</th><th>Recepta</th><th>Kilos Processats</th></tr>`;
+        const dias = parseInt(document.getElementById('select-dias-historic').value, 10);
+        
+        const fechaLimite = new Date(hoy);
+        fechaLimite.setDate(fechaLimite.getDate() - dias + 1); 
+        
+        datosArray.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        
+        datosArray.forEach(data => {
+            const fechaItem = new Date(data.timestamp || data.fechaFormato);
+            if (fechaItem >= fechaLimite) {
+                sumaKilos += data.totalKg;
+                tbody.innerHTML += `<tr><td>${data.fechaFormato}</td><td>${data.receta}</td><td class="fw-bold text-success">${Number(data.totalKg.toFixed(3)).toString().replace('.', ',')} kg</td></tr>`;
+            }
+        });
     }
     
     document.getElementById('total-sum-kg').innerText = Number(sumaKilos.toFixed(3)).toString().replace('.', ',') + ' kg';
@@ -441,27 +430,18 @@ document.addEventListener("DOMContentLoaded", () => {
         badge.classList.replace("bg-warning", "bg-success");
     })
     .catch(err => {
-        console.error("Error cargando SAGE direct CSV:", err);
         const badge = document.getElementById("status-lotes");
         badge.innerText = "Error Lots (Offline)";
         badge.classList.replace("bg-warning", "bg-danger");
     });
 
     function parsearLineaCSV(linea) {
-        let resultado = [];
-        let dentroDeComillas = false;
-        let entradaActual = "";
-        
+        let resultado = []; let dentroDeComillas = false; let entradaActual = "";
         for (let i = 0; i < linea.length; i++) {
             let char = linea[i];
-            if (char === '"') {
-                dentroDeComillas = !dentroDeComillas;
-            } else if (char === ',' && !dentroDeComillas) {
-                resultado.push(entradaActual.trim().replace(/^"|"$/g, ''));
-                entradaActual = "";
-            } else {
-                entradaActual += char;
-            }
+            if (char === '"') dentroDeComillas = !dentroDeComillas;
+            else if (char === ',' && !dentroDeComillas) { resultado.push(entradaActual.trim().replace(/^"|"$/g, '')); entradaActual = ""; }
+            else { entradaActual += char; }
         }
         resultado.push(entradaActual.trim().replace(/^"|"$/g, ''));
         return resultado;
@@ -470,30 +450,18 @@ document.addEventListener("DOMContentLoaded", () => {
     function procesarCSVLotes(csvText) {
         const lineas = csvText.split(/\r?\n/);
         if (lineas.length < 2) return;
-
         const headers = parsearLineaCSV(lineas[0]);
-        const colCodigo = headers.indexOf("Codigo Articulo");
-        const colLote = headers.indexOf("IdLote");
-
+        const colCodigo = headers.indexOf("Codigo Articulo"); const colLote = headers.indexOf("IdLote");
         if (colCodigo === -1 || colLote === -1) return;
-
         lotesTemporalesSAGE = {};
-
         for (let i = lineas.length - 1; i >= 1; i--) {
             if (!lineas[i].trim()) continue;
             const columnas = parsearLineaCSV(lineas[i]);
-            
             if (columnas.length > Math.max(colCodigo, colLote)) {
-                const codigo = columnas[colCodigo].trim();
-                const lote = columnas[colLote].trim();
-
+                const codigo = columnas[colCodigo].trim(); const lote = columnas[colLote].trim();
                 if (codigo && lote) {
-                    if (!lotesTemporalesSAGE[codigo]) {
-                        lotesTemporalesSAGE[codigo] = [];
-                    }
-                    if (!lotesTemporalesSAGE[codigo].includes(lote) && lotesTemporalesSAGE[codigo].length < 3) {
-                        lotesTemporalesSAGE[codigo].push(lote);
-                    }
+                    if (!lotesTemporalesSAGE[codigo]) lotesTemporalesSAGE[codigo] = [];
+                    if (!lotesTemporalesSAGE[codigo].includes(lote) && lotesTemporalesSAGE[codigo].length < 3) lotesTemporalesSAGE[codigo].push(lote);
                 }
             }
         }
@@ -501,31 +469,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     selectReceta.addEventListener("change", (e) => {
         const recetaId = e.target.value;
-        tbody.innerHTML = ""; 
-        ocultarTeclados();
-        currentInput = null;
-        currentLoteInput = null;
+        tbody.innerHTML = ""; ocultarTeclados();
+        currentInput = null; currentLoteInput = null;
 
         if (!recetaId || !baseDatosIngredientes[recetaId]) {
-            noRecetaMsg.classList.remove("d-none");
-            tablaContenedor.classList.add("d-none");
-            return;
+            noRecetaMsg.classList.remove("d-none"); tablaContenedor.classList.add("d-none"); return;
         }
 
         baseDatosIngredientes[recetaId].forEach((item, index) => {
             if (item.cod === "" && item.nom === "") {
                 const filaSeparador = document.createElement("tr");
-                filaSeparador.innerHTML = `
-                    <td colspan="7" class="p-0">
-                        <div style="height: 4px; background-color: #ced4da; margin: 4px 0;"></div>
-                    </td>
-                `;
-                tbody.appendChild(filaSeparador);
-                return;
+                filaSeparador.innerHTML = `<td colspan="7" class="p-0"><div style="height: 4px; background-color: #ced4da; margin: 4px 0;"></div></td>`;
+                tbody.appendChild(filaSeparador); return;
             }
 
             const listaLotes = lotesTemporalesSAGE[item.cod] || ["SENSE LOTE"];
-            
             let opcionesLotesHTML = "";
             listaLotes.forEach((lote, idx) => {
                 const seleccionado = idx === 0 ? "selected" : "";
@@ -534,70 +492,44 @@ document.addEventListener("DOMContentLoaded", () => {
             opcionesLotesHTML += `<option value="__MANUAL__">✍️ Introduïr manual...</option>`; 
 
             const fila = document.createElement("tr");
-
-            if (item.excluirTotal) {
-                fila.setAttribute("data-excluir", "true");
-                fila.style.borderLeft = "4px solid #ffc107"; 
-            }
+            if (item.excluirTotal) { fila.setAttribute("data-excluir", "true"); fila.style.borderLeft = "4px solid #ffc107"; }
 
             let htmlUsReal = "";
             if (item.usaCarro) {
                 htmlUsReal = `
                     <div class="input-group flex-nowrap">
-                        <input type="text" inputmode="decimal" class="form-control form-control-lg input-teclado input-bruto" 
-                               placeholder="Brut" readonly title="Pes Brut amb Carro">
+                        <input type="text" inputmode="decimal" class="form-control form-control-lg input-teclado input-bruto" placeholder="Brut" readonly>
                         <select class="form-select text-secondary fw-bold select-tara" onchange="recalcularTara(this)">
                             <option value="0">Sense Tara</option>
                             <option value="23.5">Carro 23,5 kg</option>
                             <option value="24">Carro 24 kg</option>
                             <option value="25">Carro 25 kg</option>
                         </select>
-                        <input type="text" class="form-control form-control-lg num-input bg-light" 
-                               name="cantidad_${recetaId}_${index}" 
-                               placeholder="Net" value="${item.base}" readonly title="Pes Net Calculat">
-                    </div>
-                `;
+                        <input type="text" class="form-control form-control-lg num-input bg-light" value="${item.base}" readonly>
+                    </div>`;
             } else {
-                htmlUsReal = `
-                    <input type="text" inputmode="decimal" class="form-control form-control-lg input-teclado num-input" 
-                           name="cantidad_${recetaId}_${index}" 
-                           placeholder="Ingrese cant." 
-                           value="${item.base}" readonly>
-                `;
+                htmlUsReal = `<input type="text" inputmode="decimal" class="form-control form-control-lg input-teclado num-input" value="${item.base}" readonly>`;
             }
 
             fila.innerHTML = `
-                <td class="item-codi">${item.cod}</td>
-                <td class="item-nombre">${item.nom}</td>
-                <td class="celda-lote-dinamica">
-                    <select class="form-select form-select-lg text-primary fw-bold select-lote-personalizado" onchange="gestionarCambioLote(this)">
-                        ${opcionesLotesHTML}
-                    </select>
-                </td>
+                <td class="item-codi">${item.cod}</td><td class="item-nombre">${item.nom}</td>
+                <td class="celda-lote-dinamica"><select class="form-select form-select-lg text-primary fw-bold select-lote-personalizado" onchange="gestionarCambioLote(this)">${opcionesLotesHTML}</select></td>
                 <td class="cantidad-base-valor" data-base="${item.base.replace(',', '.')}">${item.base}</td>
                 <td class="item-unidad">${item.uni}</td>
-                <td class="text-center align-middle">
-                    <input class="form-check-input scale-checkbox" type="checkbox" checked title="Incloure a l'escalat proporcional">
-                </td>
-                <td>${htmlUsReal}</td>
-            `;
+                <td class="text-center align-middle"><input class="form-check-input scale-checkbox" type="checkbox" checked></td>
+                <td>${htmlUsReal}</td>`;
             tbody.appendChild(fila);
         });
 
-        noRecetaMsg.classList.add("d-none");
-        tablaContenedor.classList.remove("d-none");
-        calcularSumaTotales();
-        asignarEventosInputs();
+        noRecetaMsg.classList.add("d-none"); tablaContenedor.classList.remove("d-none");
+        calcularSumaTotales(); asignarEventosInputs();
     });
 
     function asignarEventosInputs() {
         document.querySelectorAll(".input-teclado").forEach(input => {
             input.addEventListener("click", (e) => {
-                e.stopPropagation(); 
-                ocultarTeclados();
-                currentInput = input;
-                destacarFila(input);
-                numpad.classList.remove("hidden");
+                e.stopPropagation(); ocultarTeclados(); currentInput = input;
+                destacarFila(input); numpad.classList.remove("hidden");
             });
         });
     }
@@ -607,36 +539,25 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!currentInput || !e.target.classList.contains("btn-num")) return;
         const value = e.target.getAttribute("data-val");
 
-        if (value === "OK") {
-            ocultarTeclados();
-            return;
-        } else if (value === "C") {
-            currentInput.value = currentInput.value.slice(0, -1);
-        } else {
+        if (value === "OK") { ocultarTeclados(); return; }
+        else if (value === "C") { currentInput.value = currentInput.value.slice(0, -1); } 
+        else {
             if ((value === "." || value === ",") && (currentInput.value.includes(".") || currentInput.value.includes(","))) return; 
             currentInput.value += value;
         } 
 
         const filaActual = currentInput.closest("tr");
-        if (currentInput.classList.contains('input-bruto')) {
-            actualizarNetoYEscalar(filaActual);
-        } else {
-            ejecutarRecalculoProporcional(filaActual);
-        }
+        if (currentInput.classList.contains('input-bruto')) actualizarNetoYEscalar(filaActual);
+        else ejecutarRecalculoProporcional(filaActual);
     });
 
     alphapad.addEventListener("click", (e) => {
         e.stopPropagation();
         if (!currentLoteInput || !e.target.classList.contains("btn-key")) return;
         const key = e.target.getAttribute("data-key");
-
-        if (key === "OK") {
-            ocultarTeclados();
-        } else if (key === "BORRAR") {
-            currentLoteInput.value = currentLoteInput.value.slice(0, -1);
-        } else {
-            currentLoteInput.value += key;
-        }
+        if (key === "OK") ocultarTeclados();
+        else if (key === "BORRAR") currentLoteInput.value = currentLoteInput.value.slice(0, -1);
+        else currentLoteInput.value += key;
     });
 
     document.addEventListener("click", () => { ocultarTeclados(); });
@@ -644,22 +565,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function gestionarCambioLote(elementoSelect) {
     if (elementoSelect.value === "__MANUAL__") {
-        const celdaContenedora = elementoSelect.parentElement;
-        celdaContenedora.innerHTML = `
-            <input type="text" class="form-control form-control-lg fw-bold border-danger text-danger input-lote-manual" 
-                   placeholder="Escriu Lot..." readonly style="width: 100%;">
-        `;
-        
-        const nuevoInput = celdaContenedora.querySelector('input');
-        
+        const celda = elementoSelect.parentElement;
+        celda.innerHTML = `<input type="text" class="form-control form-control-lg fw-bold border-danger text-danger input-lote-manual" placeholder="Escriu Lot..." readonly style="width: 100%;">`;
+        const nuevoInput = celda.querySelector('input');
         nuevoInput.addEventListener("click", (e) => {
-            e.stopPropagation();
-            ocultarTeclados();
-            currentLoteInput = nuevoInput;
-            destacarFila(nuevoInput);
-            document.getElementById("alphanumeric-keyboard").classList.remove("hidden");
+            e.stopPropagation(); ocultarTeclados(); currentLoteInput = nuevoInput;
+            destacarFila(nuevoInput); document.getElementById("alphanumeric-keyboard").classList.remove("hidden");
         });
-
         nuevoInput.click();
     }
 }
@@ -673,18 +585,13 @@ function actualizarNetoYEscalar(fila) {
         let bruto = parseFloat(inputBruto.value.replace(',', '.')) || 0;
         let tara = parseFloat(selectTara.value) || 0;
         let neto = Math.max(0, bruto - tara);
-        
         if (inputBruto.value === "") neto = 0; 
-
         inputNeto.value = Number(neto.toFixed(4)).toString().replace('.', ',');
     }
     ejecutarRecalculoProporcional(fila); 
 }
 
-window.recalcularTara = function(selectElem) {
-    const fila = selectElem.closest("tr");
-    actualizarNetoYEscalar(fila);
-};
+window.recalcularTara = function(selectElem) { actualizarNetoYEscalar(selectElem.closest("tr")); };
 
 function ocultarTeclados() {
     document.getElementById("numeric-pad").classList.add("hidden");
@@ -699,25 +606,14 @@ function destacarFila(elemento) {
 }
 
 function calcularSumaTotales() {
-    let sumaBase = 0; 
-    let sumaReal = 0;
-
-    const filas = document.querySelectorAll("#tabla-ingredientes-body tr");
-
-    filas.forEach(fila => {
+    let sumaBase = 0; let sumaReal = 0;
+    document.querySelectorAll("#tabla-ingredientes-body tr").forEach(fila => {
         if (fila.getAttribute("data-excluir") === "true") return;
-
         const tdBase = fila.querySelector(".cantidad-base-valor");
         const inputReal = fila.querySelector(".num-input");
-
-        if (tdBase) {
-            sumaBase += parseFloat(tdBase.getAttribute("data-base")) || 0;
-        }
-        if (inputReal) {
-            sumaReal += parseFloat(inputReal.value.replace(',', '.')) || 0;
-        }
+        if (tdBase) sumaBase += parseFloat(tdBase.getAttribute("data-base")) || 0;
+        if (inputReal) sumaReal += parseFloat(inputReal.value.replace(',', '.')) || 0;
     });
-
     document.getElementById("total-base-campo").innerText = Number(sumaBase.toFixed(3)).toString().replace('.', ',');
     document.getElementById("total-real-campo").innerText = Number(sumaReal.toFixed(3)).toString().replace('.', ',');
 }
@@ -725,35 +621,25 @@ function calcularSumaTotales() {
 function ejecutarRecalculoProporcional(filaFoco = null) {
     const filaActual = filaFoco || (currentInput ? currentInput.closest("tr") : null);
     if (!filaActual) return;
-    
     const checkboxActual = filaActual.querySelector(".scale-checkbox");
-    if (checkboxActual && !checkboxActual.checked) {
-        calcularSumaTotales(); 
-        return; 
-    }
-
+    if (checkboxActual && !checkboxActual.checked) { calcularSumaTotales(); return; }
+    
     const inputNeto = filaActual.querySelector(".num-input");
     if (!inputNeto) return;
-
+    
     const valorIntroducido = parseFloat(inputNeto.value.replace(',', '.')) || 0;
     const baseActual = parseFloat(filaActual.querySelector(".cantidad-base-valor").getAttribute("data-base"));
-
     if (baseActual === 0 || valorIntroducido === 0) return;
 
     const factorEscala = valorIntroducido / baseActual;
-    const filas = document.querySelectorAll("#tabla-ingredientes-body tr");
-
-    filas.forEach(fila => {
-        if (!fila.querySelector(".cantidad-base-valor")) return;
-        if (fila === filaActual) return;
-        
+    document.querySelectorAll("#tabla-ingredientes-body tr").forEach(fila => {
+        if (!fila.querySelector(".cantidad-base-valor") || fila === filaActual) return;
         const checkboxFila = fila.querySelector(".scale-checkbox");
         if (checkboxFila && !checkboxFila.checked) return;
 
         const baseFila = parseFloat(fila.querySelector(".cantidad-base-valor").getAttribute("data-base"));
         const inputFila = fila.querySelector(".num-input");
         const nuevaCantidad = baseFila * factorEscala;
-        
         inputFila.value = Number(nuevaCantidad.toFixed(4)).toString().replace('.', ',');
 
         const inputBrutoEscalado = fila.querySelector('.input-bruto');
@@ -763,7 +649,6 @@ function ejecutarRecalculoProporcional(filaFoco = null) {
            inputBrutoEscalado.value = Number((nuevaCantidad + tara).toFixed(4)).toString().replace('.', ',');
         }
     });
-    
     calcularSumaTotales();
 }
 
@@ -775,67 +660,33 @@ function enviarAGoogleSheets(event) {
     const totalBatchCalculado = document.getElementById("total-real-campo").innerText;
 
     if (filas.length === 0) return;
+    btnGuardar.disabled = true; btnGuardar.innerText = "Guardando...";
 
-    btnGuardar.disabled = true;
-    btnGuardar.innerText = "Guardando...";
-
-    const loteInternoCalculado = generarLoteInternoSilencioso();
-
-    const payload = {
-        recetaId: selectReceta.value,
-        recetaNombre: selectReceta.options[selectReceta.selectedIndex].text,
-        totalBatch: totalBatchCalculado,
-        ingredientes: []
-    };
+    const hoy = new Date();
+    const loteInternoCalculado = `${String(hoy.getDate()).padStart(2, '0')}${String(hoy.getMonth() + 1).padStart(2, '0')}${String(hoy.getFullYear()).slice(-2)}EO`;
+    const payload = { recetaId: selectReceta.value, recetaNombre: selectReceta.options[selectReceta.selectedIndex].text, totalBatch: totalBatchCalculado, ingredientes: [] };
 
     filas.forEach(fila => {
         if (!fila.querySelector(".item-codi")) return;
-
         const campoLoteSelect = fila.querySelector(".select-lote-personalizado");
         const campoLoteManual = fila.querySelector(".input-lote-manual");
-        
         let loteFinal = "SENSE LOTE";
-        if (campoLoteSelect) {
-            loteFinal = campoLoteSelect.value;
-        } else if (campoLoteManual) {
-            loteFinal = campoLoteManual.value.trim().toUpperCase() || "MANUAL-BUID";
-        }
+        if (campoLoteSelect) loteFinal = campoLoteSelect.value;
+        else if (campoLoteManual) loteFinal = campoLoteManual.value.trim().toUpperCase() || "MANUAL-BUID";
 
         payload.ingredientes.push({
-            codi: fila.querySelector(".item-codi").innerText,
-            nombre: fila.querySelector(".item-nombre").innerText,
-            lote: loteFinal,
-            loteInterno: loteInternoCalculado, 
-            cantidad: fila.querySelector(".num-input").value,
-            unidad: fila.querySelector(".item-unidad").innerText
+            codi: fila.querySelector(".item-codi").innerText, nombre: fila.querySelector(".item-nombre").innerText,
+            lote: loteFinal, loteInterno: loteInternoCalculado, 
+            cantidad: fila.querySelector(".num-input").value, unidad: fila.querySelector(".item-unidad").innerText
         });
     });
 
-    fetch(WEB_APP_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify(payload)
-    })
+    fetch(WEB_APP_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(payload) })
     .then(response => {
-        // --- AQUÍ GUARDAMOS EL BATCH EN ESTADÍSTICAS ---
         guardarEnEstadisticas(selectReceta.value, selectReceta.options[selectReceta.selectedIndex].text, totalBatchCalculado);
-        
-        alert("¡Batch guardado correctamente!");
-        window.location.reload(); 
+        alert("¡Batch guardado correctamente!"); window.location.reload(); 
     })
-    .catch(error => {
-        alert("Error de conexión al guardar: " + error);
-        btnGuardar.disabled = false;
-        btnGuardar.innerText = "Confirmar i Desar Batch";
-    });
-}
-
-function generarLoteInternoSilencioso() {
-    const hoy = new Date();
-    const dia = String(hoy.getDate()).padStart(2, '0');
-    const mes = String(hoy.getMonth() + 1).padStart(2, '0'); 
-    const anio = String(hoy.getFullYear()).slice(-2); 
-    return `${dia}${mes}${anio}EO`;
+    .catch(error => { alert("Error de conexión al guardar: " + error); btnGuardar.disabled = false; btnGuardar.innerText = "Confirmar i Desar Batch"; });
 }
 </script>
 
