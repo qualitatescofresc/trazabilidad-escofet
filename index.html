@@ -54,6 +54,35 @@
         .key-wide { flex-grow: 2; background-color: #e2e8f0; }
         .key-space { flex-grow: 6; background-color: #ffffff; }
         .status-badge { font-size: 0.9rem; position: absolute; top: 15px; right: 20px; }
+
+        /* Estilo para el letrero tipo comentario de detalles de lote */
+        .detalle-lote-flotante {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #ffffff;
+            border: 2px solid #dc3545;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border-radius: 15px;
+            z-index: 1070;
+            max-width: 700px;
+            width: 90%;
+            padding: 20px;
+        }
+        .detalle-lote-backdrop {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1065;
+        }
+        .fila-historic-item {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .fila-historic-item:hover {
+            background-color: #f1f3f5 !important;
+        }
     </style>
 </head>
 <body>
@@ -438,9 +467,16 @@ function renderEstadisticas() {
         thead.innerHTML = `<tr><th>Data i Hora</th><th>Recepta</th><th>Kilos Processats</th></tr>`;
         datosArray.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         
-        datosArray.forEach(data => {
+        datosArray.forEach((data, index) => {
             sumaKilos += data.totalKg;
-            tbody.innerHTML += `<tr><td>${data.fechaFormato}</td><td>${data.receta}</td><td class="fw-bold text-success">${Number(data.totalKg.toFixed(3)).toString().replace('.', ',')} kg</td></tr>`;
+            // Guardamos los datos en un atributo para recuperarlos al hacer clic
+            const dataJson = encodeURIComponent(JSON.stringify(data));
+            tbody.innerHTML += `
+                <tr class="fila-historic-item" onclick="mostrarDetalleLoteHistorial('${dataJson}')">
+                    <td>${data.fechaFormato}</td>
+                    <td>${data.receta}</td>
+                    <td class="fw-bold text-success">${Number(data.totalKg.toFixed(3)).toString().replace('.', ',')} kg</td>
+                </tr>`;
         });
     }
     
@@ -723,6 +759,80 @@ function enviarAGoogleSheets(event) {
         window.location.reload(); 
     })
     .catch(error => { alert("Error de conexión al guardar: " + error); btnGuardar.disabled = false; btnGuardar.innerText = "Confirmar i Desar Lot"; });
+}
+
+// Funciones para el letrero tipo comentario / detalle de lote en Històric
+function mostrarDetalleLoteHistorial(dataEncoded) {
+    const data = JSON.parse(decodeURIComponent(dataEncoded));
+    
+    // Eliminar si ya existe un panel previo
+    cerrarDetalleLote();
+
+    // Crear el fondo oscuro (backdrop)
+    const backdrop = document.createElement('div');
+    backdrop.className = 'detalle-lote-backdrop';
+    backdrop.id = 'modal-backdrop-detalle';
+    backdrop.onclick = cerrarDetalleLote;
+
+    // Crear la caja flotante tipo comentario/tabla
+    const container = document.createElement('div');
+    container.className = 'detalle-lote-flotante';
+    container.id = 'modal-detalle-lote';
+
+    let htmlIngredientes = '';
+    if (data.ingredientes && data.ingredientes.length > 0) {
+        data.ingredientes.forEach(ing => {
+            htmlIngredientes += `
+                <tr>
+                    <td>${ing.codi || ''}</td>
+                    <td>${ing.nombre || ''}</td>
+                    <td><span class="badge bg-secondary">${ing.lote || 'SENSE LOTE'}</span></td>
+                    <td class="fw-bold">${ing.cantidad || ''}</td>
+                    <td>${ing.unidad || ''}</td>
+                </tr>`;
+        });
+    } else {
+        htmlIngredientes = `<tr><td colspan="5" class="text-center text-muted">No hi ha detalls d'ingredients disponibles per a aquest lot.</td></tr>`;
+    }
+
+    container.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+            <div>
+                <h5 class="fw-bold text-danger mb-0">Detall del Lot: ${data.receta}</h5>
+                <small class="text-muted">Data: ${data.fechaFormato} | Total: ${data.totalKg} kg</small>
+            </div>
+            <button type="button" class="btn-close" onclick="cerrarDetalleLote()"></button>
+        </div>
+        <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+            <table class="table table-sm table-striped align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Codi Ingredient</th>
+                        <th>Nom Ingredient</th>
+                        <th>Lote</th>
+                        <th>Quantitat</th>
+                        <th>Unitat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${htmlIngredientes}
+                </tbody>
+            </table>
+        </div>
+        <div class="text-end mt-3">
+            <button type="button" class="btn btn-secondary btn-sm px-4" onclick="cerrarDetalleLote()">Tancar</button>
+        </div>
+    `;
+
+    document.body.appendChild(backdrop);
+    document.body.appendChild(container);
+}
+
+function cerrarDetalleLote() {
+    const modal = document.getElementById('modal-detalle-lote');
+    const backdrop = document.getElementById('modal-backdrop-detalle');
+    if (modal) modal.remove();
+    if (backdrop) backdrop.remove();
 }
 </script>
 </body>
