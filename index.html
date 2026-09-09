@@ -55,7 +55,6 @@
         .key-space { flex-grow: 6; background-color: #ffffff; }
         .status-badge { font-size: 0.9rem; position: absolute; top: 15px; right: 20px; }
 
-        /* Estilo para el letrero tipo comentario de detalles de lote */
         .detalle-lote-flotante {
             position: fixed;
             top: 50%;
@@ -94,7 +93,6 @@
         <span class="display-4 fw-bold text-danger">PREPARATS CARNICS ESCO FRESC S.L.U. - Sistema de Traçabilitat</span>
     </header>
 
-    <!-- SEGMENTADORES (TABS) PRINCIPALES -->
     <div class="d-flex justify-content-center mb-4">
         <div class="btn-group shadow-sm" role="group">
             <input type="radio" class="btn-check" name="seccionRadio" id="btn-produccion" autocomplete="off" checked onchange="cambiarSeccion('produccion')">
@@ -186,7 +184,6 @@
             <div class="card p-4 text-center border-danger">
                 <h3>Resum de Producció (Sincronitzat amb Sheets)</h3>
                 
-                <!-- SUB-SEGMENTADORES ESTADÍSTICAS -->
                 <div class="d-flex justify-content-center my-4">
                     <div class="btn-group shadow-sm" role="group">
                         <input type="radio" class="btn-check" name="subEst" id="btn-est-avui" autocomplete="off" checked onchange="cambiarSubSeccion('avui')">
@@ -200,7 +197,6 @@
                     </div>
                 </div>
 
-                <!-- FILTROS DINÁMICOS (Ocultos por defecto, visibles en Per Recepta e Històric Dies) -->
                 <div id="selector-dias-container" class="d-none mb-3 w-75 mx-auto">
                     <div class="row g-3 justify-content-center align-items-center">
                         <div class="col-md-6">
@@ -225,7 +221,11 @@
                     </div>
                 </div>
                 
-                <div class="display-3 fw-bold text-success my-3" id="total-sum-kg">Carregant...</div>
+                <div class="display-3 fw-bold text-success my-2" id="total-sum-kg">Carregant...</div>
+                
+                <!-- NUEVO INDICADOR DE COSTE DE MANO DE OBRA -->
+                <div class="h4 text-primary fw-bold mb-3" id="coste-mano-obra">Cost Mà d'Obra: -- €/kg</div>
+                
                 <h5 id="titulo-suma-estadisticas">Suma Total Avui</h5>
 
                 <div class="table-responsive mt-4">
@@ -362,7 +362,6 @@ function cambiarSubSeccion(modo) {
     const selectorDiasContainer = document.getElementById('selector-dias-container');
     const tituloSuma = document.getElementById('titulo-suma-estadisticas');
     
-    // Mostrar filtros tanto en 'recepta' como en 'historic'
     if (modo === 'recepta' || modo === 'historic') {
         selectorDiasContainer.classList.remove('d-none');
     } else {
@@ -386,7 +385,6 @@ function limpiarCalendario() {
     renderEstadisticas();
 }
 
-// 1. CARGA DE DATOS DESDE GOOGLE SHEETS
 function cargarEstadisticasDesdeSheets() {
     document.getElementById('total-sum-kg').innerText = "Carregant...";
     fetch(WEB_APP_URL + "?action=getEstadisticas")
@@ -402,52 +400,68 @@ function cargarEstadisticasDesdeSheets() {
     .catch(error => console.error("Error al cargar estadísticas:", error));
 }
 
-// 2. RENDERIZADO CON LA VARIABLE GLOBAL Y FILTROS APLICADOS
 function renderEstadisticas() {
     const tbody = document.getElementById('tabla-estadisticas-body');
     const thead = document.getElementById('tabla-estadisticas-head');
     tbody.innerHTML = '';
     
-    let sumaKilos = 0;
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0); 
     
     let datosArray = [...estadisticasGlobales];
-
-    // Obtener valores de los filtros de días y calendario
     const valDias = document.getElementById('select-dias-historic').value;
     const valFechaInput = document.getElementById('input-calendario-historico').value;
 
-    // Filtrar previamente por Fecha de Calendario si se ha seleccionado alguna
-    if (valFechaInput) {
-        const fechaSeleccionada = new Date(valFechaInput);
-        fechaSeleccionada.setHours(0, 0, 0, 0);
-        datosArray = datosArray.filter(data => {
-            const fItem = new Date(data.timestamp);
-            fItem.setHours(0, 0, 0, 0);
-            return fItem.getTime() === fechaSeleccionada.getTime();
-        });
+    // Filtramos la data antes de calcular sumas y costes
+    if (modoEstadisticas === 'avui') {
+        datosArray = datosArray.filter(data => new Date(data.timestamp) >= hoy);
+    } else {
+        if (valFechaInput) {
+            const fechaSeleccionada = new Date(valFechaInput);
+            fechaSeleccionada.setHours(0, 0, 0, 0);
+            datosArray = datosArray.filter(data => {
+                const fItem = new Date(data.timestamp);
+                fItem.setHours(0, 0, 0, 0);
+                return fItem.getTime() === fechaSeleccionada.getTime();
+            });
+        } else if (valDias) {
+            const dias = parseInt(valDias, 10);
+            const fechaLimite = new Date(hoy);
+            fechaLimite.setDate(fechaLimite.getDate() - dias + 1);
+            datosArray = datosArray.filter(data => new Date(data.timestamp) >= fechaLimite);
+        }
     }
 
-    // Filtrar por Rango de Últimos Dies si está activo
-    if (valDias) {
-        const dias = parseInt(valDias, 10);
-        const fechaLimite = new Date(hoy);
-        fechaLimite.setDate(fechaLimite.getDate() - dias + 1);
-        datosArray = datosArray.filter(data => {
-            const fItem = new Date(data.timestamp);
-            return fItem >= fechaLimite;
-        });
-    }
+    let sumaKilos = 0;
+    const fechasUnicas = new Set();
+    
+    // Extraer días únicos y sumar los kilos totales
+    datosArray.forEach(data => {
+        sumaKilos += data.totalKg;
+        const f = new Date(data.timestamp);
+        fechasUnicas.add(`${f.getFullYear()}-${f.getMonth()}-${f.getDate()}`);
+    });
 
+    let costeTotalEuros = 0;
+    fechasUnicas.forEach(dateStr => {
+        const [y, m, d] = dateStr.split('-');
+        const dateObj = new Date(y, m, d);
+        const dayOfWeek = dateObj.getDay();
+        // Lunes a Viernes = 7 horas (140 euros), Sábados = 5 horas (100 euros)
+        if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+            costeTotalEuros += 140; 
+        } else if (dayOfWeek === 6) {
+            costeTotalEuros += 100;
+        }
+    });
+
+    const costeManoObraKg = sumaKilos > 0 ? (costeTotalEuros / sumaKilos) : 0;
+
+    // Pintar los datos filtrados en la tabla
     if (modoEstadisticas === 'avui') {
         thead.innerHTML = `<tr><th>Data i Hora</th><th>Recepta</th><th>Kilos Processats</th></tr>`;
         datosArray.forEach(data => {
-            const fechaItem = new Date(data.timestamp); 
-            if (fechaItem >= hoy) {
-                sumaKilos += data.totalKg;
-                tbody.innerHTML += `<tr><td>${data.fechaFormato}</td><td>${data.receta}</td><td class="fw-bold text-success">${Number(data.totalKg.toFixed(3)).toString().replace('.', ',')} kg</td></tr>`;
-            }
+            tbody.innerHTML += `<tr><td>${data.fechaFormato}</td><td>${data.receta}</td><td class="fw-bold text-success">${Number(data.totalKg.toFixed(3)).toString().replace('.', ',')} kg</td></tr>`;
         });
     } 
     else if (modoEstadisticas === 'recepta') {
@@ -459,7 +473,6 @@ function renderEstadisticas() {
         });
         
         for (const [receta, kg] of Object.entries(agrupado)) {
-            sumaKilos += kg;
             tbody.innerHTML += `<tr><td>${receta}</td><td class="fw-bold text-success">${Number(kg.toFixed(3)).toString().replace('.', ',')} kg</td></tr>`;
         }
     } 
@@ -467,9 +480,7 @@ function renderEstadisticas() {
         thead.innerHTML = `<tr><th>Data i Hora</th><th>Recepta</th><th>Kilos Processats</th></tr>`;
         datosArray.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         
-        datosArray.forEach((data, index) => {
-            sumaKilos += data.totalKg;
-            // Guardamos los datos en un atributo para recuperarlos al hacer clic
+        datosArray.forEach(data => {
             const dataJson = encodeURIComponent(JSON.stringify(data));
             tbody.innerHTML += `
                 <tr class="fila-historic-item" onclick="mostrarDetalleLoteHistorial('${dataJson}')">
@@ -480,7 +491,9 @@ function renderEstadisticas() {
         });
     }
     
+    // Actualizar marcadores globales
     document.getElementById('total-sum-kg').innerText = Number(sumaKilos.toFixed(3)).toString().replace('.', ',') + ' kg';
+    document.getElementById('coste-mano-obra').innerText = `Cost Mà d'Obra: ${Number(costeManoObraKg.toFixed(3)).toString().replace('.', ',')} €/kg`;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -761,20 +774,16 @@ function enviarAGoogleSheets(event) {
     .catch(error => { alert("Error de conexión al guardar: " + error); btnGuardar.disabled = false; btnGuardar.innerText = "Confirmar i Desar Lot"; });
 }
 
-// Funciones para el letrero tipo comentario / detalle de lote en Històric
 function mostrarDetalleLoteHistorial(dataEncoded) {
     const data = JSON.parse(decodeURIComponent(dataEncoded));
     
-    // Eliminar si ya existe un panel previo
     cerrarDetalleLote();
 
-    // Crear el fondo oscuro (backdrop)
     const backdrop = document.createElement('div');
     backdrop.className = 'detalle-lote-backdrop';
     backdrop.id = 'modal-backdrop-detalle';
     backdrop.onclick = cerrarDetalleLote;
 
-    // Crear la caja flotante tipo comentario/tabla
     const container = document.createElement('div');
     container.className = 'detalle-lote-flotante';
     container.id = 'modal-detalle-lote';
