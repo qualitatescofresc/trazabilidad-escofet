@@ -166,7 +166,15 @@
                             </thead>
                             <tbody id="tabla-ingredientes-body"></tbody>
                             <tfoot class="table-dark">
-                                <tr class="fw-bold"><td colspan="3">TOTAL FORMULACIÓ LOT</td><td id="total-base-campo" class="text-center">-</td><td></td><td></td><td id="total-real-campo">-</td></tr>
+                                <tr class="fw-bold">
+                                    <td colspan="3" class="align-middle">TOTAL FORMULACIÓ LOT</td>
+                                    <td id="total-base-campo" class="text-center align-middle">-</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td class="p-1">
+                                        <input type="text" inputmode="decimal" id="input-total-lote" class="form-control form-control-lg text-center fw-bold bg-warning text-dark" readonly style="cursor:pointer; font-size: 1.25rem;" placeholder="0">
+                                    </td>
+                                </tr>
                             </tfoot>
                         </table>
                         <div class="text-end mt-4">
@@ -224,7 +232,6 @@
                 
                 <div class="display-3 fw-bold text-success my-2" id="total-sum-kg">Carregant...</div>
                 
-                <!-- NUEVO INDICADOR DE COSTE DE MANO DE OBRA -->
                 <div class="h4 text-primary fw-bold mb-3" id="coste-mano-obra">Cost Mà d'Obra: -- €/kg</div>
                 
                 <h5 id="titulo-suma-estadisticas">Suma Total Avui</h5>
@@ -309,6 +316,7 @@ let currentLoteInput = null;
 let modoEstadisticas = 'avui';
 
 const baseDatosIngredientes = {
+
     "77777": [{cod: "2", nom: "CARN MAGRA PORC", base: "50", uni: "kg", usaCarro: true}, {cod: "17818", nom: "TIRA DE LLOM", base: "20", uni: "kg"}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7", uni: "kg"}, {cod: "46466", nom: "PREP.LONG.FRESCA.NAT Nº20", base: "1,31", uni: "kg"}, {cod: "47403", nom: "SAL FINA", base: "1", uni: "kg"}, {cod: "46436", nom: "PEBRE BLANC MOLT FI", base: "0,19", uni: "kg"}],
     "99999": [{cod: "10023", nom: "RETALL BACO 50/50", base: "30", uni: "kg", usaCarro: true}, {cod: "17818", nom: "TIRA DE LLOM", base: "10", uni: "kg"}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "2,000", uni: "kg"}, {cod: "16034", nom: "PREPARAT XISTORRA", base: "3,080", uni: "kg"}],
     "30": [{cod: "40084", nom: "SAFATA 320.260.50", base: "20", uni: "un", excluirTotal: true}, {cod: "77777", nom: "CRUDO PER BUTIFFARRA SALTXITXAS", base: "30", uni: "kg"}, {cod: "47873", nom: "TRIPA DE PORC 28/30", base: "7", uni: "un", excluirTotal: true}],
@@ -345,6 +353,7 @@ const baseDatosIngredientes = {
     "30041": [{cod: "930041", nom: "CRUDO BOTIFARRA DUROC", base: "21", uni: "kg"}, {cod: "47873", nom: "TRIPA CERDO 28/30", base: "3", uni: "un", excluirTotal: true}, {cod: "41479", nom: "ETIQUETA ESCO 75x80", base: "11", uni: "un", excluirTotal: true}, {cod: "40082", nom: "FILM PA+EVOH+PE", base: "11", uni: "un", excluirTotal: true}, {cod: "40084", nom: "SAFATA 320.260.50", base: "11", uni: "un", excluirTotal: true}],
     "930041": [{cod: "10022", nom: "ESPATLLA PORC DUROC 8mm", base: "14,5", uni: "kg", usaCarro: true}, {cod: "49", nom: "PANXETA PORC", base: "5,5", uni: "kg"}, {cod: "27001", nom: "AIGUA", base: "1", uni: "kg"}, {cod: "46466", nom: "PREPARAT LONGANISSA FRESCA 5g/kg", base: "0,105", uni: "kg"}, {cod: "47403", nom: "SAL FINA 17g/kg", base: "0,357", uni: "kg"}, {cod: "46436", nom: "PEBRE BLANCA MOLT FI 3g/kg", base: "0,063", uni: "kg"}],
     "69996": [{cod: "242", nom: "FILET POBRE VACA / CULATA ESPATLLA VEDELLA / POBRE VEDELLA", base: "50", uni: "kg", usaCarro: true}, {cod: "27001", nom: "AIGUA OSMÒTICA", base: "7,5", uni: "kg"}, {cod: "16076", nom: "FIBRA DE PESOLS", base: "1,5", uni: "kg"}, {cod: "16023", nom: "SALCO N 16 g/Kg", base: "0,944", uni: "kg"}]
+
 };
 
 function cambiarSeccion(seccion) {
@@ -414,7 +423,6 @@ function renderEstadisticas() {
     const valDias = document.getElementById('select-dias-historic').value;
     const valFechaInput = document.getElementById('input-calendario-historico').value;
 
-    // Filtramos la data antes de calcular sumas y costes
     if (modoEstadisticas === 'avui') {
         datosArray = datosArray.filter(data => new Date(data.timestamp) >= hoy);
     } else {
@@ -437,7 +445,6 @@ function renderEstadisticas() {
     let sumaKilos = 0;
     const fechasUnicas = new Set();
     
-    // Extraer días únicos y sumar los kilos totales
     datosArray.forEach(data => {
         sumaKilos += data.totalKg;
         const f = new Date(data.timestamp);
@@ -449,7 +456,6 @@ function renderEstadisticas() {
         const [y, m, d] = dateStr.split('-');
         const dateObj = new Date(y, m, d);
         const dayOfWeek = dateObj.getDay();
-        // Lunes a Viernes = 7 horas (140 euros), Sábados = 5 horas (100 euros)
         if (dayOfWeek >= 1 && dayOfWeek <= 5) {
             costeTotalEuros += 140; 
         } else if (dayOfWeek === 6) {
@@ -459,7 +465,6 @@ function renderEstadisticas() {
 
     const costeManoObraKg = sumaKilos > 0 ? (costeTotalEuros / sumaKilos) : 0;
 
-    // Pintar los datos filtrados en la tabla
     if (modoEstadisticas === 'avui') {
         thead.innerHTML = `<tr><th>Data i Hora</th><th>Recepta</th><th>Kilos Processats</th></tr>`;
         datosArray.forEach(data => {
@@ -493,7 +498,6 @@ function renderEstadisticas() {
         });
     }
     
-    // Actualizar marcadores globales
     document.getElementById('total-sum-kg').innerText = Number(sumaKilos.toFixed(3)).toString().replace('.', ',') + ' kg';
     document.getElementById('coste-mano-obra').innerText = `Cost Mà d'Obra: ${Number(costeManoObraKg.toFixed(3)).toString().replace('.', ',')} €/kg`;
 }
@@ -507,6 +511,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const tbody = document.getElementById("tabla-ingredientes-body");
     const numpad = document.getElementById("numeric-pad");
     const alphapad = document.getElementById("alphanumeric-keyboard");
+
+    const inputTotalLote = document.getElementById("input-total-lote");
+    inputTotalLote.addEventListener("click", (e) => {
+        e.stopPropagation(); 
+        ocultarTeclados(); 
+        currentInput = inputTotalLote;
+        numpad.classList.remove("hidden");
+        inputTotalLote.classList.add("border", "border-3", "border-danger");
+    });
 
     fetch(SAGE_CSV_URL)
     .then(response => response.text())
@@ -633,9 +646,13 @@ document.addEventListener("DOMContentLoaded", () => {
             currentInput.value += value;
         } 
 
-        const filaActual = currentInput.closest("tr");
-        if (currentInput.classList.contains('input-bruto')) actualizarNetoYEscalar(filaActual);
-        else ejecutarRecalculoProporcional(filaActual);
+        if (currentInput.id === "input-total-lote") {
+            recalcularPorTotalLote();
+        } else {
+            const filaActual = currentInput.closest("tr");
+            if (currentInput.classList.contains('input-bruto')) actualizarNetoYEscalar(filaActual);
+            else ejecutarRecalculoProporcional(filaActual);
+        }
     });
 
     alphapad.addEventListener("click", (e) => {
@@ -684,6 +701,7 @@ function ocultarTeclados() {
     document.getElementById("numeric-pad").classList.add("hidden");
     document.getElementById("alphanumeric-keyboard").classList.add("hidden");
     document.querySelectorAll("#tabla-ingredientes-body tr").forEach(tr => tr.classList.remove("fila-limitante"));
+    document.getElementById("input-total-lote").classList.remove("border", "border-3", "border-danger");
     currentInput = null;
 }
 
@@ -702,7 +720,11 @@ function calcularSumaTotales() {
         if (inputReal) sumaReal += parseFloat(inputReal.value.replace(',', '.')) || 0;
     });
     document.getElementById("total-base-campo").innerText = Number(sumaBase.toFixed(3)).toString().replace('.', ',');
-    document.getElementById("total-real-campo").innerText = Number(sumaReal.toFixed(3)).toString().replace('.', ',');
+    
+    const inputTotalLote = document.getElementById("input-total-lote");
+    if (currentInput !== inputTotalLote) {
+        inputTotalLote.value = Number(sumaReal.toFixed(3)).toString().replace('.', ',');
+    }
 }
 
 function ejecutarRecalculoProporcional(filaFoco = null) {
@@ -739,12 +761,54 @@ function ejecutarRecalculoProporcional(filaFoco = null) {
     calcularSumaTotales();
 }
 
+function recalcularPorTotalLote() {
+    const inputTotal = document.getElementById("input-total-lote");
+    const nuevoTotal = parseFloat(inputTotal.value.replace(',', '.')) || 0;
+    
+    let sumaBases = 0;
+    document.querySelectorAll("#tabla-ingredientes-body tr").forEach(fila => {
+        if (fila.getAttribute("data-excluir") === "true") return;
+        const tdBase = fila.querySelector(".cantidad-base-valor");
+        if (tdBase) sumaBases += parseFloat(tdBase.getAttribute("data-base")) || 0;
+    });
+
+    if (sumaBases === 0) return;
+    const factorEscala = nuevoTotal === 0 ? 0 : (nuevoTotal / sumaBases);
+
+    document.querySelectorAll("#tabla-ingredientes-body tr").forEach(fila => {
+        if (fila.getAttribute("data-excluir") === "true") return;
+        
+        const tdBase = fila.querySelector(".cantidad-base-valor");
+        if (!tdBase) return;
+        
+        const checkboxFila = fila.querySelector(".scale-checkbox");
+        if (checkboxFila) checkboxFila.checked = true;
+
+        const baseFila = parseFloat(tdBase.getAttribute("data-base"));
+        const inputFila = fila.querySelector(".num-input");
+        
+        if (inputFila) {
+            const nuevaCantidad = baseFila * factorEscala;
+            inputFila.value = nuevaCantidad === 0 ? "" : Number(nuevaCantidad.toFixed(4)).toString().replace('.', ',');
+
+            const inputBrutoEscalado = fila.querySelector('.input-bruto');
+            const selectTaraEscalada = fila.querySelector('.select-tara');
+            if(inputBrutoEscalado && selectTaraEscalada && inputFila.value !== "") {
+               let tara = parseFloat(selectTaraEscalada.value) || 0;
+               inputBrutoEscalado.value = Number((nuevaCantidad + tara).toFixed(4)).toString().replace('.', ',');
+            } else if (inputBrutoEscalado) {
+                inputBrutoEscalado.value = "";
+            }
+        }
+    });
+}
+
 function enviarAGoogleSheets(event) {
     event.preventDefault(); 
     const selectReceta = document.getElementById("receta");
     const btnGuardar = document.getElementById("btn-guardar");
     const filas = document.querySelectorAll("#tabla-ingredientes-body tr");
-    const totalBatchCalculado = document.getElementById("total-real-campo").innerText;
+    const totalBatchCalculado = document.getElementById("input-total-lote").value;
 
     if (filas.length === 0) return;
     btnGuardar.disabled = true; btnGuardar.innerText = "Guardando...";
