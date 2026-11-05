@@ -194,15 +194,21 @@
                 <h3>Resum de Producció (Sincronitzat amb Sheets)</h3>
                 
                 <div class="d-flex justify-content-center my-4">
-                    <div class="btn-group shadow-sm" role="group">
+                    <div class="btn-group shadow-sm flex-wrap" role="group">
                         <input type="radio" class="btn-check" name="subEst" id="btn-est-avui" autocomplete="off" checked onchange="cambiarSubSeccion('avui')">
-                        <label class="btn btn-outline-secondary px-4 fw-bold" for="btn-est-avui">Avui</label>
+                        <label class="btn btn-outline-secondary px-3 fw-bold" for="btn-est-avui">Avui</label>
 
                         <input type="radio" class="btn-check" name="subEst" id="btn-est-recepta" autocomplete="off" onchange="cambiarSubSeccion('recepta')">
-                        <label class="btn btn-outline-secondary px-4 fw-bold" for="btn-est-recepta">Per Recepta</label>
+                        <label class="btn btn-outline-secondary px-3 fw-bold" for="btn-est-recepta">Per Recepta</label>
+
+                        <input type="radio" class="btn-check" name="subEst" id="btn-est-setmana" autocomplete="off" onchange="cambiarSubSeccion('setmana')">
+                        <label class="btn btn-outline-secondary px-3 fw-bold" for="btn-est-setmana">Per Setmana</label>
+
+                        <input type="radio" class="btn-check" name="subEst" id="btn-est-mes" autocomplete="off" onchange="cambiarSubSeccion('mes')">
+                        <label class="btn btn-outline-secondary px-3 fw-bold" for="btn-est-mes">Per Mes</label>
 
                         <input type="radio" class="btn-check" name="subEst" id="btn-est-historic" autocomplete="off" onchange="cambiarSubSeccion('historic')">
-                        <label class="btn btn-outline-secondary px-4 fw-bold" for="btn-est-historic">Històric Dies</label>
+                        <label class="btn btn-outline-secondary px-3 fw-bold" for="btn-est-historic">Històric Dies</label>
                     </div>
                 </div>
 
@@ -599,6 +605,10 @@ function cambiarSubSeccion(modo) {
         tituloSuma.innerText = "Suma Total Històric";
     } else if (modo === 'recepta') {
         tituloSuma.innerText = "Suma Total Per Recepta";
+    } else if (modo === 'setmana') {
+        tituloSuma.innerText = "Suma Total Per Setmana";
+    } else if (modo === 'mes') {
+        tituloSuma.innerText = "Suma Total Per Mes";
     } else {
         tituloSuma.innerText = "Suma Total Avui";
     }
@@ -625,6 +635,48 @@ function cargarEstadisticasDesdeSheets() {
     .catch(error => console.error("Error al cargar estadísticas:", error));
 }
 
+function getWeekData(dateObj) {
+    let d = new Date(dateObj.getTime());
+    d.setHours(0, 0, 0, 0);
+    let day = d.getDay();
+    let diffToThursday = (day === 0 ? -3 : 4 - day);
+    let thursday = new Date(d);
+    thursday.setDate(d.getDate() + diffToThursday);
+    let anio = thursday.getFullYear();
+    
+    let firstThursday = new Date(anio, 0, 4);
+    let firstDay = firstThursday.getDay();
+    let diffToFirstThursdayMonday = firstDay === 0 ? -3 : 4 - firstDay;
+    firstThursday.setDate(firstThursday.getDate() + diffToFirstThursdayMonday);
+    
+    let semanaNum = Math.round((thursday - firstThursday) / (7 * 24 * 60 * 60 * 1000)) + 1;
+    
+    let diffToMonday = day === 0 ? -6 : 1 - day;
+    let lunes = new Date(d);
+    lunes.setDate(d.getDate() + diffToMonday);
+    
+    let domingo = new Date(lunes);
+    domingo.setDate(lunes.getDate() + 6);
+    
+    return {
+        key: `${anio}-W${String(semanaNum).padStart(2, '0')}`,
+        semanaNum: semanaNum,
+        anio: anio,
+        lunesStr: lunes.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        domingoStr: domingo.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    };
+}
+
+function getMonthData(dateObj) {
+    let y = dateObj.getFullYear();
+    let m = dateObj.getMonth();
+    const nombresMeses = ["Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"];
+    return {
+        key: `${y}-${String(m + 1).padStart(2, '0')}`,
+        nombreMes: `${nombresMeses[m]} ${y}`
+    };
+}
+
 function renderEstadisticas() {
     const tbody = document.getElementById('tabla-estadisticas-body');
     const thead = document.getElementById('tabla-estadisticas-head');
@@ -639,7 +691,7 @@ function renderEstadisticas() {
 
     if (modoEstadisticas === 'avui') {
         datosArray = datosArray.filter(data => new Date(data.timestamp) >= hoy);
-    } else {
+    } else if (modoEstadisticas === 'recepta' || modoEstadisticas === 'historic') {
         if (valFechaInput) {
             const fechaSeleccionada = new Date(valFechaInput);
             fechaSeleccionada.setHours(0, 0, 0, 0);
@@ -697,6 +749,58 @@ function renderEstadisticas() {
             tbody.innerHTML += `<tr><td>${receta}</td><td class="fw-bold text-success">${Number(kg.toFixed(3)).toString().replace('.', ',')} kg</td></tr>`;
         }
     } 
+    else if (modoEstadisticas === 'setmana') {
+        thead.innerHTML = `<tr><th>Número de Setmana</th><th>Data (Dilluns - Diumenge)</th><th>Kilos Totals</th></tr>`;
+        const agrupado = {};
+        datosArray.forEach(data => {
+            const f = new Date(data.timestamp);
+            const wInfo = getWeekData(f);
+            if (!agrupado[wInfo.key]) {
+                agrupado[wInfo.key] = {
+                    semanaNum: wInfo.semanaNum,
+                    anio: wInfo.anio,
+                    rangoFechas: `${wInfo.lunesStr} - ${wInfo.domingoStr}`,
+                    totalKg: 0
+                };
+            }
+            agrupado[wInfo.key].totalKg += data.totalKg;
+        });
+
+        const semanasArray = Object.values(agrupado).sort((a, b) => b.key > a.key ? 1 : -1);
+        semanasArray.forEach(item => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>Setmana ${item.semanaNum} (${item.anio})</td>
+                    <td>${item.rangoFechas}</td>
+                    <td class="fw-bold text-success">${Number(item.totalKg.toFixed(3)).toString().replace('.', ',')} kg</td>
+                </tr>`;
+        });
+    }
+    else if (modoEstadisticas === 'mes') {
+        thead.innerHTML = `<tr><th>Mes</th><th>Kilos Totals</th></tr>`;
+        const agrupado = {};
+        datosArray.forEach(data => {
+            const f = new Date(data.timestamp);
+            const mInfo = getMonthData(f);
+            if (!agrupado[mInfo.key]) {
+                agrupado[mInfo.key] = {
+                    nombreMes: mInfo.nombreMes,
+                    totalKg: 0
+                };
+            }
+            agrupado[mInfo.key].totalKg += data.totalKg;
+        });
+
+        const mesesArray = Object.keys(agrupado).sort().reverse();
+        mesesArray.forEach(key => {
+            const item = agrupado[key];
+            tbody.innerHTML += `
+                <tr>
+                    <td>${item.nombreMes}</td>
+                    <td class="fw-bold text-success">${Number(item.totalKg.toFixed(3)).toString().replace('.', ',')} kg</td>
+                </tr>`;
+        });
+    }
     else if (modoEstadisticas === 'historic') {
         thead.innerHTML = `<tr><th>Data i Hora</th><th>Recepta</th><th>Kilos Processats</th></tr>`;
         datosArray.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
