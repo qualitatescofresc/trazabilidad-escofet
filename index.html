@@ -82,6 +82,40 @@
         .fila-historic-item:hover {
             background-color: #f1f3f5 !important;
         }
+
+        /* Estilos del buscador de recetas */
+        .buscador-receta-box {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        .resultados-receta-lista {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 1050;
+            max-height: 280px;
+            overflow-y: auto;
+            background: #ffffff;
+            border: 2px solid #dc3545;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+        }
+        .resultado-receta-item {
+            padding: 12px 16px;
+            font-size: 1.15rem;
+            cursor: pointer;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .resultado-receta-item:last-child {
+            border-bottom: none;
+        }
+        .resultado-receta-item:hover,
+        .resultado-receta-item.active {
+            background-color: #fff5f5;
+            color: #dc3545;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -109,45 +143,66 @@
             <div class="card p-4">
                 <h3>1. Selecció</h3>
                 <label for="receta" class="form-label text-muted">Seleccioneu la recepta a preparar:</label>
-                <select class="form-select form-select-lg mb-3" id="receta">
-                    <option value="">-- Buscar Codi --</option>
-                    <option value="77777"> CRUDO PER BUTIFFARRA SALTXI</option>
-                    <option value="88888"> CRUDO POLLASTRE PER BURGERS SALTXI</option>
-                    <option value="99999"> CRUDO XORIÇO / XISTORRA</option>
-                    <option value="30">30 - BUTIFARRA DE PORC</option>
-                    <option value="31">31 - SALTXITXES DE PORC</option>                        
-                    <option value="32">32 - CARN PICADA PORC</option>
-                    <option value="34">34 - XORIÇ FRESC</option>
-                    <option value="36">36 - BURGER MEAT VACA</option>
-                    <option value="37">37 - BOTIFARRA DE ROVELLONS</option>
-                    <option value="207">207 - LLAMINET TRUFAT / VIDALETS TRUFAT</option>
-                    <option value="54">54/55 - BULL BLANC / BOTIFARRA BLANCA</option>
-                    <option value="56">56/57 - BOTIFARRA FAVES / BOTIFARRA NEGRA </option>    
-                    <option value="99958">58 - CRUDO BUTIFARRA CATALANA</option>
-                    <option value="58">58 - BUTIFARRA CATALANA</option>
-                    <option value="99970">70 - CRUDO CAP SENGLAR - JABALÍ</option>
-                    <option value="70">70 - EMBOTIT - CAP SENGLAR - EMBOTIT</option>
-                    <option value="82">82 - PEUS PORC CUITS</option>
-                    <option value="94">94 - BOTIFARRA DEL PEROL</option>
-                    <option value="95">95 - BOTIFARRA D'OU - PROGRAMA 4</option>
-                    <option value="930041">CRUDO - BUTIFARRA DUROC</option>
-                    <option value="30041">30041 - BUTIFARRA DUROC</option>
-                    <option value="105">105 - XISTORRA</option>
-                    <option value="197">197 - XORIÇ CRIOLL</option>
-                    <option value="223">223-SMASH BURGUER/20115-BURGER COSTELLA VEDELLA </option>
-                    <option value="226">226 - BURGER MEAT VEDELLA</option>
-                    <option value="228">228 - CARN PICADA VEDELLA</option>
-                    <option value="79998">79998 - CARN PICADA VACA</option>
-                    <option value="229">229 - MANDONGUILLES VEDELL</option>
-                    <option value="70049">70049 - MANDONGUILES MIXTES</option>
-                    <option value="303">303 - BURGER MEAT POLLASTRE</option>
-                    <option value="317">317 - SALSITXES POLLASTRE</option>
-                    <option value="2031">2031 - BURGER MEAT VACA MADURADA</option>
-                    <option value="10035">10035 - BURGUER MEAT VEDELLA - ANGUS</option>
-                    <option value="20115">20115 - BURGER COSTELLA VEDELLA</option>
-                    <option value="20115 LR">20115 - "LA REAL" BURGER COSTELLA VEDELLA</option>
-                    <option value="69996">69996 - PICADA VEDELLA EXTRA</option> 
-                </select>
+                
+                <div class="input-group mb-2">
+                    <select class="form-select form-select-lg" id="receta">
+                        <option value="">-- Buscar Codi --</option>
+                        <option value="77777"> CRUDO PER BUTIFFARRA SALTXI</option>
+                        <option value="88888"> CRUDO POLLASTRE PER BURGERS SALTXI</option>
+                        <option value="99999"> CRUDO XORIÇO / XISTORRA</option>
+                        <option value="30">30 - BUTIFARRA DE PORC</option>
+                        <option value="31">31 - SALTXITXES DE PORC</option>                        
+                        <option value="32">32 - CARN PICADA PORC</option>
+                        <option value="34">34 - XORIÇ FRESC</option>
+                        <option value="36">36 - BURGER MEAT VACA</option>
+                        <option value="37">37 - BOTIFARRA DE ROVELLONS</option>
+                        <option value="207">207 - LLAMINET TRUFAT / VIDALETS TRUFAT</option>
+                        <option value="54">54/55 - BULL BLANC / BOTIFARRA BLANCA</option>
+                        <option value="56">56/57 - BOTIFARRA FAVES / BOTIFARRA NEGRA </option>    
+                        <option value="99958">58 - CRUDO BUTIFARRA CATALANA</option>
+                        <option value="58">58 - BUTIFARRA CATALANA</option>
+                        <option value="99970">70 - CRUDO CAP SENGLAR - JABALÍ</option>
+                        <option value="70">70 - EMBOTIT - CAP SENGLAR - EMBOTIT</option>
+                        <option value="82">82 - PEUS PORC CUITS</option>
+                        <option value="94">94 - BOTIFARRA DEL PEROL</option>
+                        <option value="95">95 - BOTIFARRA D'OU - PROGRAMA 4</option>
+                        <option value="930041">CRUDO - BUTIFARRA DUROC</option>
+                        <option value="30041">30041 - BUTIFARRA DUROC</option>
+                        <option value="105">105 - XISTORRA</option>
+                        <option value="197">197 - XORIÇ CRIOLL</option>
+                        <option value="223">223-SMASH BURGUER/20115-BURGER COSTELLA VEDELLA </option>
+                        <option value="226">226 - BURGER MEAT VEDELLA</option>
+                        <option value="228">228 - CARN PICADA VEDELLA</option>
+                        <option value="79998">79998 - CARN PICADA VACA</option>
+                        <option value="229">229 - MANDONGUILLES VEDELL</option>
+                        <option value="70049">70049 - MANDONGUILES MIXTES</option>
+                        <option value="303">303 - BURGER MEAT POLLASTRE</option>
+                        <option value="317">317 - SALSITXES POLLASTRE</option>
+                        <option value="2031">2031 - BURGER MEAT VACA MADURADA</option>
+                        <option value="10035">10035 - BURGUER MEAT VEDELLA - ANGUS</option>
+                        <option value="20115">20115 - BURGER COSTELLA VEDELLA</option>
+                        <option value="20115 LR">20115 - "LA REAL" BURGER COSTELLA VEDELLA</option>
+                        <option value="69996">69996 - PICADA VEDELLA EXTRA</option> 
+                    </select>
+                    <button type="button" class="btn btn-outline-danger btn-lg fw-bold" id="btn-abrir-buscador-receta">
+                        🔍 Cercar
+                    </button>
+                </div>
+
+                <div id="buscador-receta-container" class="buscador-receta-box d-none">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-danger text-white fw-bold">Codi / Nom</span>
+                        <input type="text"
+                               id="input-buscar-receta"
+                               class="form-control fw-bold"
+                               placeholder="Escriu un codi (ex. 36, 20115) o nom (ex. BUTIFARRA, VEDELLA)..."
+                               autocomplete="off">
+                        <button type="button" class="btn btn-outline-secondary fw-bold" id="btn-cerrar-buscador-receta" title="Tancar cercador">
+                            ✖
+                        </button>
+                    </div>
+                    <div id="resultados-receta-lista" class="resultados-receta-lista d-none"></div>
+                </div>
             </div>
         </div>
 
@@ -309,6 +364,7 @@
         <button type="button" class="btn-key" data-key="C">C</button><button type="button" class="btn-key" data-key="V">V</button>
         <button type="button" class="btn-key" data-key="B">B</button><button type="button" class="btn-key" data-key="N">N</button>
         <button type="button" class="btn-key" data-key="M">M</button>
+        <button type="button" class="btn-key key-space" data-key=" ">ESPAI</button>
         <button type="button" class="btn-key action-done key-wide" data-key="OK">OK</button>
     </div>
 </div>
@@ -774,6 +830,7 @@ function renderEstadisticas() {
             const wInfo = getWeekData(f);
             if (!agrupado[wInfo.key]) {
                 agrupado[wInfo.key] = {
+                    key: wInfo.key,
                     semanaNum: wInfo.semanaNum,
                     anio: wInfo.anio,
                     rangoFechas: `${wInfo.lunesStr} - ${wInfo.domingoStr}`,
@@ -847,6 +904,113 @@ document.addEventListener("DOMContentLoaded", () => {
     const numpad = document.getElementById("numeric-pad");
     const alphapad = document.getElementById("alphanumeric-keyboard");
 
+    // --- LÓGICA DEL BUSCADOR DE RECETAS ---
+    const buscadorContainer = document.getElementById("buscador-receta-container");
+    const inputBuscarReceta = document.getElementById("input-buscar-receta");
+    const listaResultadosReceta = document.getElementById("resultados-receta-lista");
+    const btnAbrirBuscadorReceta = document.getElementById("btn-abrir-buscador-receta");
+    const btnCerrarBuscadorReceta = document.getElementById("btn-cerrar-buscador-receta");
+
+    function normalizarTexto(texto) {
+        return (texto || "")
+            .toString()
+            .normalize("NFD")
+            .replace(/[̀-ͯ]/g, "")
+            .toLowerCase()
+            .trim();
+    }
+
+    function abrirBuscadorReceta() {
+        buscadorContainer.classList.remove("d-none");
+        inputBuscarReceta.value = "";
+        renderResultadosReceta("");
+        setTimeout(() => inputBuscarReceta.focus(), 50);
+    }
+
+    function cerrarBuscadorReceta() {
+        buscadorContainer.classList.add("d-none");
+        listaResultadosReceta.classList.add("d-none");
+        inputBuscarReceta.value = "";
+        if (currentLoteInput === inputBuscarReceta) {
+            currentLoteInput = null;
+        }
+    }
+
+    function seleccionarRecetaDesdeBuscador(valorOption) {
+        selectReceta.value = valorOption;
+        cerrarBuscadorReceta();
+        ocultarTeclados();
+        selectReceta.dispatchEvent(new Event("change"));
+    }
+
+    function renderResultadosReceta(termino) {
+        const query = normalizarTexto(termino);
+        const opciones = Array.from(selectReceta.options).filter(opt => opt.value !== "");
+
+        const coincidencias = opciones.filter(opt => {
+            if (!query) return true;
+            const matchValor = normalizarTexto(opt.value).includes(query);
+            const matchTexto = normalizarTexto(opt.text).includes(query);
+            return matchValor || matchTexto;
+        });
+
+        listaResultadosReceta.innerHTML = "";
+
+        if (coincidencias.length === 0) {
+            listaResultadosReceta.innerHTML = `<div class="p-3 text-muted text-center">Cap recepta trobada per a "${termino}"</div>`;
+            listaResultadosReceta.classList.remove("d-none");
+            return;
+        }
+
+        coincidencias.forEach((opt, idx) => {
+            const item = document.createElement("div");
+            item.className = "resultado-receta-item" + (idx === 0 && query ? " active" : "");
+            item.dataset.value = opt.value;
+            item.innerHTML = `<span class="badge bg-secondary me-2">${opt.value}</span><span>${opt.text.trim()}</span>`;
+            item.addEventListener("mousedown", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                seleccionarRecetaDesdeBuscador(opt.value);
+            });
+            listaResultadosReceta.appendChild(item);
+        });
+
+        listaResultadosReceta.classList.remove("d-none");
+    }
+
+    btnAbrirBuscadorReceta.addEventListener("click", (e) => {
+        e.stopPropagation();
+        abrirBuscadorReceta();
+    });
+
+    btnCerrarBuscadorReceta.addEventListener("click", (e) => {
+        e.stopPropagation();
+        cerrarBuscadorReceta();
+    });
+
+    inputBuscarReceta.addEventListener("click", (e) => {
+        e.stopPropagation();
+        currentLoteInput = inputBuscarReceta;
+        renderResultadosReceta(inputBuscarReceta.value);
+    });
+
+    inputBuscarReceta.addEventListener("input", (e) => {
+        renderResultadosReceta(e.target.value);
+    });
+
+    inputBuscarReceta.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            cerrarBuscadorReceta();
+        } else if (e.key === "Enter") {
+            const primeraActiva = listaResultadosReceta.querySelector(".resultado-receta-item.active") ||
+                                    listaResultadosReceta.querySelector(".resultado-receta-item");
+            if (primeraActiva && primeraActiva.dataset.value) {
+                e.preventDefault();
+                seleccionarRecetaDesdeBuscador(primeraActiva.dataset.value);
+            }
+        }
+    });
+
     const inputTotalLote = document.getElementById("input-total-lote");
     inputTotalLote.addEventListener("click", (e) => {
         e.stopPropagation(); 
@@ -907,7 +1071,16 @@ document.addEventListener("DOMContentLoaded", () => {
         tbody.innerHTML = ""; ocultarTeclados();
         currentInput = null; currentLoteInput = null;
 
-        if (!recetaId || !baseDatosIngredientes[recetaId]) {
+        if (recetaId === "") {
+            noRecetaMsg.classList.remove("d-none");
+            tablaContenedor.classList.add("d-none");
+            abrirBuscadorReceta();
+            return;
+        }
+
+        cerrarBuscadorReceta();
+
+        if (!baseDatosIngredientes[recetaId]) {
             noRecetaMsg.classList.remove("d-none"); tablaContenedor.classList.add("d-none"); return;
         }
 
@@ -994,12 +1167,26 @@ document.addEventListener("DOMContentLoaded", () => {
         e.stopPropagation();
         if (!currentLoteInput || !e.target.classList.contains("btn-key")) return;
         const key = e.target.getAttribute("data-key");
-        if (key === "OK") ocultarTeclados();
-        else if (key === "BORRAR") currentLoteInput.value = currentLoteInput.value.slice(0, -1);
-        else currentLoteInput.value += key;
+        if (key === "OK") {
+            ocultarTeclados();
+            return;
+        } else if (key === "BORRAR") {
+            currentLoteInput.value = currentLoteInput.value.slice(0, -1);
+        } else {
+            currentLoteInput.value += key;
+        }
+
+        if (currentLoteInput === inputBuscarReceta) {
+            renderResultadosReceta(currentLoteInput.value);
+        }
     });
 
-    document.addEventListener("click", () => { ocultarTeclados(); });
+    document.addEventListener("click", (e) => {
+        ocultarTeclados();
+        if (!buscadorContainer.contains(e.target) && e.target !== btnAbrirBuscadorReceta && e.target !== selectReceta) {
+            listaResultadosReceta.classList.add("d-none");
+        }
+    });
 });
 
 function gestionarCambioLote(elementoSelect) {
@@ -1042,7 +1229,8 @@ function ocultarTeclados() {
 
 function destacarFila(elemento) {
     document.querySelectorAll("#tabla-ingredientes-body tr").forEach(tr => tr.classList.remove("fila-limitante"));
-    elemento.closest("tr").classList.add("fila-limitante");
+    const tr = elemento.closest("tr");
+    if (tr) tr.classList.add("fila-limitante");
 }
 
 function calcularSumaTotales() {
